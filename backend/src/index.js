@@ -12,6 +12,12 @@ const batchExpenseRoutes = require('./routes/batchExpenses');
 const financeRoutes = require('./routes/finance');
 const dashboardRoutes = require('./routes/dashboard');
 const dailyLogRoutes = require('./routes/dailyLogs');
+const vaccinationRoutes = require('./routes/vaccinations');
+const healthLogRoutes = require('./routes/healthLogs');
+const alertRoutes = require('./routes/alerts');
+const inventoryRoutes = require('./routes/inventory');
+const customerRoutes = require('./routes/customers');
+const saleRoutes = require('./routes/sales');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -32,6 +38,12 @@ app.use('/api/batch-expenses', batchExpenseRoutes);
 app.use('/api/finance', financeRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/daily-logs', dailyLogRoutes);
+app.use('/api/vaccinations', vaccinationRoutes);
+app.use('/api/health-logs', healthLogRoutes);
+app.use('/api/alerts', alertRoutes);
+app.use('/api/inventory', inventoryRoutes);
+app.use('/api/customers', customerRoutes);
+app.use('/api/sales', saleRoutes);
 
 // Serve Angular frontend in production
 app.use(express.static(path.join(__dirname, '..', 'public')));
