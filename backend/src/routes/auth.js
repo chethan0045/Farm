@@ -24,10 +24,11 @@ router.post('/register', async (req, res) => {
 
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ error: 'Email and password are required' });
+    const { email, username, password } = req.body;
+    const loginId = email || username;
+    if (!loginId || !password) return res.status(400).json({ error: 'Username/email and password are required' });
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ $or: [{ email: loginId }, { username: loginId }] });
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }

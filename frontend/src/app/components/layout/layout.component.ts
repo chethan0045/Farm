@@ -13,9 +13,12 @@ import { AuthService } from '../../services/auth.service';
       <aside class="w-64 bg-emerald-800 text-white flex flex-col fixed h-full z-30 transition-transform"
         [class.-translate-x-full]="!sidebarOpen" [class.translate-x-0]="sidebarOpen"
         [class.lg:translate-x-0]="true">
-        <div class="p-5 border-b border-emerald-700">
-          <h1 class="text-xl font-bold flex items-center gap-2"><span class="text-2xl">🐔</span> Poultry Farm</h1>
-          <p class="text-emerald-300 text-xs mt-1">Management System</p>
+        <div class="p-4 border-b border-emerald-700 flex items-center gap-3">
+          <img src="logo.png" alt="KVS Poultry Farms" class="w-12 h-12 rounded-full bg-white p-0.5">
+          <div>
+            <h1 class="text-base font-bold leading-tight">KVS Poultry Farms</h1>
+            <p class="text-emerald-300 text-[10px]">Management System</p>
+          </div>
         </div>
         <nav class="flex-1 p-4 space-y-1">
           <a routerLink="/dashboard" routerLinkActive="bg-emerald-700" (click)="sidebarOpen=false"
@@ -55,7 +58,10 @@ import { AuthService } from '../../services/auth.service';
           <button (click)="sidebarOpen = !sidebarOpen" class="text-gray-600">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
           </button>
-          <h1 class="font-bold text-emerald-700">🐔 Poultry Farm</h1>
+          <div class="flex items-center gap-2">
+            <img src="logo.png" alt="KVS" class="w-8 h-8 rounded-full">
+            <span class="font-bold text-emerald-700 text-sm">KVS Poultry Farms</span>
+          </div>
           <div></div>
         </header>
         <main class="p-4 md:p-6">
