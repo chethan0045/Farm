@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ApiService } from '../../services/api.service';
@@ -195,12 +195,12 @@ export class DashboardComponent implements OnInit {
   loading = true;
   today = new Date();
 
-  constructor(private api: ApiService) {}
+  constructor(private api: ApiService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.api.getDashboard().subscribe({
-      next: (data) => { this.data = data; this.loading = false; },
-      error: () => this.loading = false
+      next: (data) => { this.data = data; this.loading = false; this.cdr.detectChanges(); },
+      error: () => { this.loading = false; this.cdr.detectChanges(); }
     });
   }
 }

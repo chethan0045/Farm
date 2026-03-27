@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -106,7 +106,7 @@ export class LayoutComponent implements OnInit {
   sidebarOpen = false;
   unreadAlerts = 0;
 
-  constructor(public auth: AuthService, private router: Router, private api: ApiService) {}
+  constructor(public auth: AuthService, private router: Router, private api: ApiService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.loadAlertCount();
@@ -114,7 +114,7 @@ export class LayoutComponent implements OnInit {
   }
 
   loadAlertCount() {
-    this.api.getUnreadAlertCount().subscribe({ next: (r) => this.unreadAlerts = r.count });
+    this.api.getUnreadAlertCount().subscribe({ next: (r) => { this.unreadAlerts = r.count; this.cdr.detectChanges(); } });
   }
 
   logout() { this.auth.logout(); this.router.navigate(['/login']); }
