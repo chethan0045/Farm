@@ -57,8 +57,10 @@ app.get('/api/health', (req, res) => {
 });
 
 // Connect to MongoDB and start server
+const { startAlertScheduler } = require('./services/alertGenerator');
 connectDB().then(() => {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+    startAlertScheduler();
   });
 });
