@@ -3,6 +3,7 @@ const Batch = require('../models/Batch');
 const Mortality = require('../models/Mortality');
 const BatchExpense = require('../models/BatchExpense');
 const Finance = require('../models/Finance');
+const DailyLog = require('../models/DailyLog');
 const { authenticate } = require('../middleware/auth');
 
 const router = express.Router();
@@ -10,14 +11,18 @@ router.use(authenticate);
 
 router.get('/', async (req, res) => {
   try {
-    const activeBatches = await Batch.countDocuments({ status: 'active' });
-    const totalBirds = await Batch.aggregate([
-      { $match: { status: 'active' } },
-      { $group: { _id: null, total: { $sum: '$currentCount' }, arrived: { $sum: '$chicksArrived' } } }
-    ]);
+    const activeBatches = await Batch.find({ status: 'active' }).sort({ createdAt: -1 });
+
+    const totalBirdsAlive = activeBatches.reduce((sum, b) => sum + (b.currentCount || 0), 0);
+    const totalChicksArrived = activeBatches.reduce((sum, b) => sum + b.chicksArrived, 0);
 
     const totalMortality = await Mortality.aggregate([
       { $group: { _id: null, total: { $sum: '$count' } } }
+    ]);
+
+    // Daily log mortality too
+    const dailyLogMortality = await DailyLog.aggregate([
+      { $group: { _id: null, total: { $sum: '$mortalityCount' } } }
     ]);
 
     const expenseByCategory = await BatchExpense.aggregate([
@@ -39,22 +44,46 @@ router.get('/', async (req, res) => {
       { $group: { _id: null, total: { $sum: '$amount' } } }
     ]);
 
-    const recentBatches = await Batch.find().sort({ createdAt: -1 }).limit(5);
+    // Active batches with day count and phase
+    const batchSummaries = activeBatches.map(b => ({
+      _id: b._id,
+      batchNumber: b.batchNumber,
+      chicksArrived: b.chicksArrived,
+      currentCount: b.currentCount,
+      arrivalDate: b.arrivalDate,
+      dayCount: b.dayCount,
+      phase: b.phase,
+      mortalityPercent: b.mortalityPercent,
+      breed: b.breed,
+      shedType: b.shedType,
+      houseNumber: b.houseNumber,
+      status: b.status
+    }));
 
-    const mortalityByBatch = await Mortality.aggregate([
-      { $group: { _id: '$batch', total: { $sum: '$count' } } },
-      { $lookup: { from: 'batches', localField: '_id', foreignField: '_id', as: 'batchInfo' } },
-      { $unwind: '$batchInfo' },
-      { $project: { batchNumber: '$batchInfo.batchNumber', total: 1 } },
-      { $sort: { total: -1 } },
-      { $limit: 10 }
+    // Today's logs summary
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const todayLogs = await DailyLog.find({
+      date: { $gte: today, $lt: tomorrow }
+    }).populate('batch', 'batchNumber');
+
+    // Recent logs (last 7 days)
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const recentFeedTotal = await DailyLog.aggregate([
+      { $match: { date: { $gte: sevenDaysAgo } } },
+      { $group: { _id: null, totalFeed: { $sum: '$feedGivenKg' }, totalWater: { $sum: '$waterGivenLiters' } } }
     ]);
 
     res.json({
-      activeBatches,
-      totalBirdsAlive: totalBirds[0]?.total || 0,
-      totalChicksArrived: totalBirds[0]?.arrived || 0,
-      totalMortality: totalMortality[0]?.total || 0,
+      activeBatchCount: activeBatches.length,
+      totalBirdsAlive,
+      totalChicksArrived,
+      totalMortality: (totalMortality[0]?.total || 0) + (dailyLogMortality[0]?.total || 0),
       expenseByCategory,
       totalBatchExpenses: totalBatchExpenses[0]?.total || 0,
       financials: {
@@ -62,8 +91,12 @@ router.get('/', async (req, res) => {
         totalExpenses: expenses[0]?.total || 0,
         profit: (income[0]?.total || 0) - (expenses[0]?.total || 0)
       },
-      recentBatches,
-      mortalityByBatch
+      batchSummaries,
+      todayLogs,
+      recentFeed: {
+        totalFeedKg: recentFeedTotal[0]?.totalFeed || 0,
+        totalWaterLiters: recentFeedTotal[0]?.totalWater || 0
+      }
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

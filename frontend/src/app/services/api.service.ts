@@ -113,4 +113,31 @@ export class ApiService {
   deleteFinance(id: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/finance/${id}`);
   }
+
+  // Daily Logs
+  getDailyLogs(params?: any): Observable<any[]> {
+    let httpParams = new HttpParams();
+    if (params) {
+      Object.keys(params).forEach(key => {
+        if (params[key]) httpParams = httpParams.set(key, params[key]);
+      });
+    }
+    return this.http.get<any[]>(`${this.apiUrl}/daily-logs`, { params: httpParams });
+  }
+
+  getDailyLogAnalytics(batchId: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/daily-logs/analytics/${batchId}`);
+  }
+
+  createDailyLog(data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/daily-logs`, data);
+  }
+
+  updateDailyLog(id: string, data: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/daily-logs/${id}`, data);
+  }
+
+  deleteDailyLog(id: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/daily-logs/${id}`);
+  }
 }

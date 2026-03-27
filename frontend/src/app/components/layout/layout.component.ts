@@ -26,6 +26,10 @@ import { AuthService } from '../../services/auth.service';
             class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-emerald-700 transition text-sm">
             <span class="text-lg">🐣</span> Batches
           </a>
+          <a routerLink="/daily-logs" routerLinkActive="bg-emerald-700" (click)="sidebarOpen=false"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-emerald-700 transition text-sm">
+            <span class="text-lg">📋</span> Daily Monitoring
+          </a>
           <a routerLink="/mortality" routerLinkActive="bg-emerald-700" (click)="sidebarOpen=false"
             class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-emerald-700 transition text-sm">
             <span class="text-lg">📉</span> Mortality
