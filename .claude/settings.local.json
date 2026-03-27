@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git config:*)",
+      "Bash(gh auth:*)",
+      "Bash(npm install:*)",
+      "Bash(npx @angular/cli version)",
+      "Bash(npx @angular/cli new frontend --routing --style=css --skip-git --skip-tests --ssr=false)",
+      "Bash(npx ng:*)",
+      "Bash(rm:*)",
+      "Bash(git rm:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ]
+  }
+}
