@@ -19,6 +19,11 @@ export const routes: Routes = [
       { path: 'sales', loadComponent: () => import('./components/sales/sales.component').then(m => m.SalesComponent) },
       { path: 'finance', loadComponent: () => import('./components/finance/finance.component').then(m => m.FinanceComponent) },
       { path: 'alerts', loadComponent: () => import('./components/alerts/alerts.component').then(m => m.AlertsComponent) },
+      { path: 'iot-dashboard', loadComponent: () => import('./components/iot-dashboard/iot-dashboard.component').then(m => m.IotDashboardComponent) },
+      { path: 'devices', loadComponent: () => import('./components/devices/devices.component').then(m => m.DevicesComponent) },
+      { path: 'device-control', loadComponent: () => import('./components/device-control/device-control.component').then(m => m.DeviceControlComponent) },
+      { path: 'automation-rules', loadComponent: () => import('./components/automation-rules/automation-rules.component').then(m => m.AutomationRulesComponent) },
+      { path: 'ai-insights', loadComponent: () => import('./components/ai-insights/ai-insights.component').then(m => m.AiInsightsComponent) },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },

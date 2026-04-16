@@ -17,6 +17,8 @@ const dailyLogSchema = new mongoose.Schema({
   temperature: { type: Number },
   humidity: { type: Number },
   ammonia: { type: String, enum: ['low', 'medium', 'high'], default: 'low' },
+  ammoniaPPM: { type: Number },
+  co2PPM: { type: Number },
   ventilation: { type: String, enum: ['good', 'moderate', 'poor'], default: 'good' },
   lightHours: { type: Number, min: 0, max: 24 },
 

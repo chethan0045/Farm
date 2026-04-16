@@ -18,6 +18,13 @@ const alertRoutes = require('./routes/alerts');
 const inventoryRoutes = require('./routes/inventory');
 const customerRoutes = require('./routes/customers');
 const saleRoutes = require('./routes/sales');
+const sensorDataRoutes = require('./routes/sensorData');
+const deviceRoutes = require('./routes/devices');
+const deviceControlRoutes = require('./routes/deviceControl');
+const automationRuleRoutes = require('./routes/automationRules');
+const aiRoutes = require('./routes/ai');
+const sensorAlertRoutes = require('./routes/sensorAlerts');
+const escalationPolicyRoutes = require('./routes/escalationPolicies');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -44,6 +51,13 @@ app.use('/api/alerts', alertRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/sales', saleRoutes);
+app.use('/api/sensor-data', sensorDataRoutes);
+app.use('/api/devices', deviceRoutes);
+app.use('/api/device-control', deviceControlRoutes);
+app.use('/api/automation-rules', automationRuleRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/sensor-alerts', sensorAlertRoutes);
+app.use('/api/escalation-policies', escalationPolicyRoutes);
 
 // Serve Angular frontend in production
 app.use(express.static(path.join(__dirname, '..', 'public')));
@@ -58,9 +72,15 @@ app.get('/api/health', (req, res) => {
 
 // Connect to MongoDB and start server
 const { startAlertScheduler } = require('./services/alertGenerator');
+const { startDeviceHealthChecker } = require('./services/deviceManager');
+const { startAIScheduler } = require('./services/aiEngine');
+const { startEscalationChecker } = require('./services/alertEscalation');
 connectDB().then(() => {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
     startAlertScheduler();
+    startDeviceHealthChecker();
+    startAIScheduler();
+    startEscalationChecker();
   });
 });

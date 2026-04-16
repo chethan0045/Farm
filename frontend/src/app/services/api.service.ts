@@ -202,4 +202,61 @@ export class ApiService {
   createSale(data: any): Observable<any> { return this.http.post(`${this.apiUrl}/sales`, data); }
   updateSale(id: string, data: any): Observable<any> { return this.http.put(`${this.apiUrl}/sales/${id}`, data); }
   deleteSale(id: string): Observable<any> { return this.http.delete(`${this.apiUrl}/sales/${id}`); }
+
+  // Sensor Data
+  getSensorLatest(houseNumber: string): Observable<any> { return this.http.get(`${this.apiUrl}/sensor-data/latest/${houseNumber}`); }
+  getSensorHistory(houseNumber: string, params?: any): Observable<any[]> {
+    let p = new HttpParams(); if (params) Object.keys(params).forEach(k => { if (params[k]) p = p.set(k, params[k]); });
+    return this.http.get<any[]>(`${this.apiUrl}/sensor-data/history/${houseNumber}`, { params: p });
+  }
+  getSensorSummary(): Observable<any[]> { return this.http.get<any[]>(`${this.apiUrl}/sensor-data/summary`); }
+
+  // Devices
+  getDevices(params?: any): Observable<any[]> {
+    let p = new HttpParams(); if (params) Object.keys(params).forEach(k => { if (params[k]) p = p.set(k, params[k]); });
+    return this.http.get<any[]>(`${this.apiUrl}/devices`, { params: p });
+  }
+  getDeviceOverview(): Observable<any[]> { return this.http.get<any[]>(`${this.apiUrl}/devices/overview`); }
+  getDevice(id: string): Observable<any> { return this.http.get(`${this.apiUrl}/devices/${id}`); }
+  createDevice(data: any): Observable<any> { return this.http.post(`${this.apiUrl}/devices`, data); }
+  updateDevice(id: string, data: any): Observable<any> { return this.http.put(`${this.apiUrl}/devices/${id}`, data); }
+  deleteDevice(id: string): Observable<any> { return this.http.delete(`${this.apiUrl}/devices/${id}`); }
+  regenerateDeviceKey(id: string): Observable<any> { return this.http.post(`${this.apiUrl}/devices/${id}/regenerate-key`, {}); }
+
+  // Device Control
+  sendDeviceCommand(data: any): Observable<any> { return this.http.post(`${this.apiUrl}/device-control/command`, data); }
+  getDeviceControlStatus(houseNumber: string): Observable<any[]> { return this.http.get<any[]>(`${this.apiUrl}/device-control/status/${houseNumber}`); }
+
+  // Automation Rules
+  getAutomationRules(params?: any): Observable<any[]> {
+    let p = new HttpParams(); if (params) Object.keys(params).forEach(k => { if (params[k]) p = p.set(k, params[k]); });
+    return this.http.get<any[]>(`${this.apiUrl}/automation-rules`, { params: p });
+  }
+  getAutomationPresets(): Observable<any[]> { return this.http.get<any[]>(`${this.apiUrl}/automation-rules/presets`); }
+  createAutomationRule(data: any): Observable<any> { return this.http.post(`${this.apiUrl}/automation-rules`, data); }
+  updateAutomationRule(id: string, data: any): Observable<any> { return this.http.put(`${this.apiUrl}/automation-rules/${id}`, data); }
+  deleteAutomationRule(id: string): Observable<any> { return this.http.delete(`${this.apiUrl}/automation-rules/${id}`); }
+  toggleAutomationRule(id: string): Observable<any> { return this.http.put(`${this.apiUrl}/automation-rules/${id}/toggle`, {}); }
+  overrideAutomationRule(id: string, data: any): Observable<any> { return this.http.put(`${this.apiUrl}/automation-rules/${id}/override`, data); }
+  evaluateAutomationRules(): Observable<any> { return this.http.post(`${this.apiUrl}/automation-rules/evaluate`, {}); }
+
+  // AI
+  getAIInsights(params?: any): Observable<any[]> {
+    let p = new HttpParams(); if (params) Object.keys(params).forEach(k => { if (params[k]) p = p.set(k, params[k]); });
+    return this.http.get<any[]>(`${this.apiUrl}/ai/insights`, { params: p });
+  }
+  getBatchInsights(batchId: string): Observable<any[]> { return this.http.get<any[]>(`${this.apiUrl}/ai/insights/${batchId}`); }
+  triggerAnalysis(data?: any): Observable<any> { return this.http.post(`${this.apiUrl}/ai/analyze`, data || {}); }
+  getBatchRecommendations(batchId: string): Observable<any[]> { return this.http.get<any[]>(`${this.apiUrl}/ai/recommendations/${batchId}`); }
+  getAIDashboard(): Observable<any> { return this.http.get(`${this.apiUrl}/ai/dashboard`); }
+  dismissInsight(id: string): Observable<any> { return this.http.put(`${this.apiUrl}/ai/insights/${id}/dismiss`, {}); }
+
+  // Sensor Alerts
+  getSensorAlerts(params?: any): Observable<any[]> {
+    let p = new HttpParams(); if (params) Object.keys(params).forEach(k => { if (params[k]) p = p.set(k, params[k]); });
+    return this.http.get<any[]>(`${this.apiUrl}/sensor-alerts`, { params: p });
+  }
+  getSensorAlertUnreadCount(): Observable<any> { return this.http.get(`${this.apiUrl}/sensor-alerts/unread-count`); }
+  markSensorAlertRead(id: string): Observable<any> { return this.http.put(`${this.apiUrl}/sensor-alerts/${id}/read`, {}); }
+  resolveSensorAlert(id: string): Observable<any> { return this.http.put(`${this.apiUrl}/sensor-alerts/${id}/resolve`, {}); }
 }

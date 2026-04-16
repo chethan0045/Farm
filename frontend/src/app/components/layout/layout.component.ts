@@ -57,6 +57,28 @@ import { ApiService } from '../../services/api.service';
             <span>📦</span> Inventory
           </a>
 
+          <p class="text-[10px] text-emerald-400 uppercase tracking-wider px-3 pt-3 pb-1">IoT & AI</p>
+          <a routerLink="/iot-dashboard" routerLinkActive="bg-emerald-700" (click)="sidebarOpen=false"
+            class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-emerald-700 transition text-sm">
+            <span>📡</span> IoT Dashboard
+          </a>
+          <a routerLink="/devices" routerLinkActive="bg-emerald-700" (click)="sidebarOpen=false"
+            class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-emerald-700 transition text-sm">
+            <span>🔧</span> Devices
+          </a>
+          <a routerLink="/device-control" routerLinkActive="bg-emerald-700" (click)="sidebarOpen=false"
+            class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-emerald-700 transition text-sm">
+            <span>🎛️</span> Control Panel
+          </a>
+          <a routerLink="/automation-rules" routerLinkActive="bg-emerald-700" (click)="sidebarOpen=false"
+            class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-emerald-700 transition text-sm">
+            <span>⚙️</span> Automation
+          </a>
+          <a routerLink="/ai-insights" routerLinkActive="bg-emerald-700" (click)="sidebarOpen=false"
+            class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-emerald-700 transition text-sm">
+            <span>🧠</span> AI Insights
+          </a>
+
           <p class="text-[10px] text-emerald-400 uppercase tracking-wider px-3 pt-3 pb-1">Finance</p>
           <a routerLink="/batch-expenses" routerLinkActive="bg-emerald-700" (click)="sidebarOpen=false"
             class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-emerald-700 transition text-sm">

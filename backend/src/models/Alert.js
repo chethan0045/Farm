@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const alertSchema = new mongoose.Schema({
   batch: { type: mongoose.Schema.Types.ObjectId, ref: 'Batch' },
-  type: { type: String, required: true, enum: ['temperature', 'water', 'mortality', 'feed', 'vaccination', 'inventory', 'general'] },
+  type: { type: String, required: true, enum: ['temperature', 'water', 'mortality', 'feed', 'vaccination', 'inventory', 'general', 'sensor', 'ai'] },
   severity: { type: String, required: true, enum: ['info', 'warning', 'danger', 'critical'] },
   title: { type: String, required: true },
   message: { type: String, required: true },
