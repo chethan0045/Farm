@@ -14,7 +14,47 @@ import { ApiService } from '../../services/api.service';
         <p class="text-xs text-gray-400">{{ today | date:'mediumDate' }}</p>
       </div>
 
-      <div *ngIf="loading" class="text-center py-10 text-gray-500">Loading...</div>
+      <!-- Skeleton placeholders while loading -->
+      <div *ngIf="loading" class="animate-pulse">
+        <!-- Key stats 2x2 -->
+        <div class="grid grid-cols-2 gap-2 md:gap-3 mb-4">
+          <div *ngFor="let i of [1,2,3,4]" class="bg-white rounded-lg shadow-sm p-3 border-l-4 border-gray-200">
+            <div class="h-2 w-16 bg-gray-200 rounded mb-2"></div>
+            <div class="h-7 w-20 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+
+        <!-- Financials 3-col -->
+        <div class="grid grid-cols-3 gap-2 mb-4">
+          <div *ngFor="let i of [1,2,3]" class="bg-white rounded-lg shadow-sm p-2.5 text-center">
+            <div class="h-2 w-10 bg-gray-200 rounded mx-auto mb-2"></div>
+            <div class="h-4 w-16 bg-gray-200 rounded mx-auto"></div>
+          </div>
+        </div>
+
+        <!-- Active batches -->
+        <div class="mb-4">
+          <div class="h-3 w-28 bg-gray-200 rounded mb-2"></div>
+          <div class="space-y-2">
+            <div *ngFor="let i of [1,2,3]" class="bg-white rounded-lg shadow-sm p-3">
+              <div class="flex justify-between items-center mb-2">
+                <div class="h-4 w-24 bg-gray-200 rounded"></div>
+                <div class="h-4 w-12 bg-gray-200 rounded-full"></div>
+              </div>
+              <div class="h-2 w-full bg-gray-200 rounded mb-2"></div>
+              <div class="h-2 w-2/3 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom row -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div *ngFor="let i of [1,2]" class="bg-white rounded-lg shadow-sm p-3">
+            <div class="h-2 w-20 bg-gray-200 rounded mb-3"></div>
+            <div class="h-12 w-full bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      </div>
 
       <div *ngIf="!loading && data">
         <!-- Key Stats - 2x2 grid on mobile -->
