@@ -9,218 +9,214 @@ import { ApiService } from '../../services/api.service';
   imports: [CommonModule, RouterLink],
   template: `
     <div>
+      <!-- Header -->
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl md:text-2xl font-bold text-gray-800">Dashboard</h2>
-        <p class="text-xs text-gray-400">{{ today | date:'mediumDate' }}</p>
+        <div>
+          <h2 class="text-xl md:text-2xl font-bold text-gray-800">Dashboard</h2>
+          <p class="text-xs text-gray-400">{{ today | date:'EEEE, mediumDate' }}</p>
+        </div>
+        <button (click)="loadDashboard()" [disabled]="loading"
+          class="flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 disabled:opacity-50 px-3 py-1.5 rounded-lg transition">
+          <span [class.animate-spin]="loading">↻</span> Refresh
+        </button>
       </div>
 
-      <!-- Skeleton placeholders while loading -->
+      <!-- Loading skeleton -->
       <div *ngIf="loading" class="animate-pulse">
-        <!-- Key stats 2x2 -->
-        <div class="grid grid-cols-2 gap-2 md:gap-3 mb-4">
-          <div *ngFor="let i of [1,2,3,4]" class="bg-white rounded-lg shadow-sm p-3 border-l-4 border-gray-200">
-            <div class="h-2 w-16 bg-gray-200 rounded mb-2"></div>
-            <div class="h-7 w-20 bg-gray-200 rounded"></div>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3 mb-4">
+          <div *ngFor="let i of [1,2,3,4]" class="bg-white rounded-2xl shadow-sm p-4 h-24"></div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm p-4 h-20 mb-4"></div>
+        <div class="space-y-2">
+          <div *ngFor="let i of [1,2,3]" class="bg-white rounded-2xl shadow-sm p-4 h-20"></div>
+        </div>
+      </div>
+
+      <!-- Error state -->
+      <div *ngIf="!loading && error" class="bg-white rounded-2xl shadow-sm p-8 text-center">
+        <div class="text-4xl mb-3">⚠️</div>
+        <h3 class="text-lg font-bold text-gray-800 mb-1">Couldn't load the dashboard</h3>
+        <p class="text-sm text-gray-500 mb-4">{{ error }}</p>
+        <button (click)="loadDashboard()"
+          class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-5 py-2.5 rounded-xl transition">
+          ↻ Try again
+        </button>
+      </div>
+
+      <!-- Data -->
+      <div *ngIf="!loading && !error && data" class="space-y-4">
+        <!-- KPI cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
+          <div class="rounded-2xl shadow-sm p-4 text-white bg-gradient-to-br from-emerald-500 to-emerald-600">
+            <div class="flex items-center justify-between">
+              <span class="text-2xl">🐔</span>
+              <span class="text-[10px] font-medium uppercase tracking-wide opacity-90">Active Batches</span>
+            </div>
+            <p class="text-3xl font-bold mt-2">{{ data.activeBatchCount }}</p>
+          </div>
+          <div class="rounded-2xl shadow-sm p-4 text-white bg-gradient-to-br from-blue-500 to-blue-600">
+            <div class="flex items-center justify-between">
+              <span class="text-2xl">🐥</span>
+              <span class="text-[10px] font-medium uppercase tracking-wide opacity-90">Birds Alive</span>
+            </div>
+            <p class="text-3xl font-bold mt-2">{{ data.totalBirdsAlive | number }}</p>
+          </div>
+          <div class="rounded-2xl shadow-sm p-4 text-white bg-gradient-to-br from-amber-500 to-amber-600">
+            <div class="flex items-center justify-between">
+              <span class="text-2xl">🥚</span>
+              <span class="text-[10px] font-medium uppercase tracking-wide opacity-90">Total Arrived</span>
+            </div>
+            <p class="text-3xl font-bold mt-2">{{ data.totalChicksArrived | number }}</p>
+          </div>
+          <div class="rounded-2xl shadow-sm p-4 text-white bg-gradient-to-br from-rose-500 to-red-600">
+            <div class="flex items-center justify-between">
+              <span class="text-2xl">☠️</span>
+              <span class="text-[10px] font-medium uppercase tracking-wide opacity-90">Mortality</span>
+            </div>
+            <p class="text-3xl font-bold mt-2">{{ data.totalMortality | number }}</p>
           </div>
         </div>
 
-        <!-- Financials 3-col -->
-        <div class="grid grid-cols-3 gap-2 mb-4">
-          <div *ngFor="let i of [1,2,3]" class="bg-white rounded-lg shadow-sm p-2.5 text-center">
-            <div class="h-2 w-10 bg-gray-200 rounded mx-auto mb-2"></div>
-            <div class="h-4 w-16 bg-gray-200 rounded mx-auto"></div>
+        <!-- Financial summary -->
+        <div class="bg-white rounded-2xl shadow-sm p-4">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-lg">💰</span>
+            <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wide">Financials</h3>
+          </div>
+          <div class="grid grid-cols-3 gap-3 mb-3">
+            <div>
+              <p class="text-[10px] text-gray-400 uppercase">Income</p>
+              <p class="text-base md:text-xl font-bold text-green-600">₹{{ data.financials.totalIncome | number:'1.0-0' }}</p>
+            </div>
+            <div>
+              <p class="text-[10px] text-gray-400 uppercase">Expense</p>
+              <p class="text-base md:text-xl font-bold text-red-600">₹{{ data.financials.totalExpenses | number:'1.0-0' }}</p>
+            </div>
+            <div>
+              <p class="text-[10px] text-gray-400 uppercase">Profit</p>
+              <p class="text-base md:text-xl font-bold" [class.text-green-600]="data.financials.profit >= 0" [class.text-red-600]="data.financials.profit < 0">₹{{ data.financials.profit | number:'1.0-0' }}</p>
+            </div>
+          </div>
+          <!-- Income vs expense bar -->
+          <div class="flex h-2.5 rounded-full overflow-hidden bg-gray-100">
+            <div class="bg-green-500" [style.width.%]="incomeBarWidth()"></div>
+            <div class="bg-red-500" [style.width.%]="100 - incomeBarWidth()"></div>
           </div>
         </div>
 
         <!-- Active batches -->
-        <div class="mb-4">
-          <div class="h-3 w-28 bg-gray-200 rounded mb-2"></div>
-          <div class="space-y-2">
-            <div *ngFor="let i of [1,2,3]" class="bg-white rounded-lg shadow-sm p-3">
-              <div class="flex justify-between items-center mb-2">
-                <div class="h-4 w-24 bg-gray-200 rounded"></div>
-                <div class="h-4 w-12 bg-gray-200 rounded-full"></div>
-              </div>
-              <div class="h-2 w-full bg-gray-200 rounded mb-2"></div>
-              <div class="h-2 w-2/3 bg-gray-200 rounded"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Bottom row -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div *ngFor="let i of [1,2]" class="bg-white rounded-lg shadow-sm p-3">
-            <div class="h-2 w-20 bg-gray-200 rounded mb-3"></div>
-            <div class="h-12 w-full bg-gray-200 rounded"></div>
-          </div>
-        </div>
-      </div>
-
-      <div *ngIf="!loading && data">
-        <!-- Key Stats - 2x2 grid on mobile -->
-        <div class="grid grid-cols-2 gap-2 md:gap-3 mb-4">
-          <div class="bg-white rounded-lg shadow-sm p-3 border-l-4 border-emerald-500">
-            <p class="text-[10px] text-gray-400 uppercase">Active Batches</p>
-            <p class="text-2xl md:text-3xl font-bold text-gray-800">{{ data.activeBatchCount }}</p>
-          </div>
-          <div class="bg-white rounded-lg shadow-sm p-3 border-l-4 border-blue-500">
-            <p class="text-[10px] text-gray-400 uppercase">Birds Alive</p>
-            <p class="text-2xl md:text-3xl font-bold text-gray-800">{{ data.totalBirdsAlive | number }}</p>
-          </div>
-          <div class="bg-white rounded-lg shadow-sm p-3 border-l-4 border-yellow-500">
-            <p class="text-[10px] text-gray-400 uppercase">Total Arrived</p>
-            <p class="text-2xl md:text-3xl font-bold text-gray-800">{{ data.totalChicksArrived | number }}</p>
-          </div>
-          <div class="bg-white rounded-lg shadow-sm p-3 border-l-4 border-red-500">
-            <p class="text-[10px] text-gray-400 uppercase">Mortality</p>
-            <p class="text-2xl md:text-3xl font-bold text-red-600">{{ data.totalMortality | number }}</p>
-          </div>
-        </div>
-
-        <!-- Financials - compact on mobile -->
-        <div class="grid grid-cols-3 gap-2 mb-4">
-          <div class="bg-white rounded-lg shadow-sm p-2.5 text-center">
-            <p class="text-[9px] text-gray-400 uppercase">Income</p>
-            <p class="text-sm md:text-lg font-bold text-green-600">₹{{ data.financials.totalIncome | number:'1.0-0' }}</p>
-          </div>
-          <div class="bg-white rounded-lg shadow-sm p-2.5 text-center">
-            <p class="text-[9px] text-gray-400 uppercase">Expense</p>
-            <p class="text-sm md:text-lg font-bold text-red-600">₹{{ data.financials.totalExpenses | number:'1.0-0' }}</p>
-          </div>
-          <div class="bg-white rounded-lg shadow-sm p-2.5 text-center">
-            <p class="text-[9px] text-gray-400 uppercase">Profit</p>
-            <p class="text-sm md:text-lg font-bold" [class.text-green-600]="data.financials.profit >= 0" [class.text-red-600]="data.financials.profit < 0">₹{{ data.financials.profit | number:'1.0-0' }}</p>
-          </div>
-        </div>
-
-        <!-- Active Batches - Card layout for mobile -->
-        <div class="mb-4">
+        <div>
           <div class="flex justify-between items-center mb-2">
-            <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wide">Active Batches</h3>
-            <a routerLink="/batches" class="text-xs text-emerald-600 hover:underline">View all</a>
+            <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wide flex items-center gap-2"><span>📊</span> Active Batches</h3>
+            <a routerLink="/batches" class="text-xs text-emerald-600 hover:underline font-medium">View all →</a>
           </div>
 
-          <div *ngIf="data.batchSummaries.length === 0" class="bg-white rounded-lg shadow-sm p-6 text-center text-gray-400 text-sm">No active batches</div>
+          <div *ngIf="data.batchSummaries.length === 0" class="bg-white rounded-2xl shadow-sm p-8 text-center">
+            <div class="text-3xl mb-2">🐣</div>
+            <p class="text-gray-500 text-sm mb-3">No active batches yet</p>
+            <a routerLink="/batches" class="inline-block bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-4 py-2 rounded-xl">Add a batch</a>
+          </div>
 
-          <!-- Mobile: Cards / Desktop: Table -->
-          <div class="space-y-2 md:hidden">
-            <div *ngFor="let b of data.batchSummaries" class="bg-white rounded-lg shadow-sm p-3">
-              <div class="flex justify-between items-center mb-2">
+          <div class="space-y-2">
+            <div *ngFor="let b of data.batchSummaries" class="bg-white rounded-2xl shadow-sm p-4">
+              <div class="flex justify-between items-start mb-3">
                 <div class="flex items-center gap-2">
-                  <span class="font-bold text-gray-800">{{ b.batchNumber }}</span>
+                  <div class="w-9 h-9 rounded-xl bg-emerald-100 flex items-center justify-center text-lg">🐔</div>
+                  <div>
+                    <p class="font-bold text-gray-800 leading-tight">{{ b.batchNumber }}</p>
+                    <p class="text-[11px] text-gray-400">{{ b.breed || 'Broiler' }} · House {{ b.houseNumber || '-' }}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-1.5">
                   <span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full text-[10px] font-bold">Day {{ b.dayCount }}</span>
-                </div>
-                <span class="text-[10px] px-1.5 py-0.5 rounded-full capitalize font-medium"
-                  [class.bg-yellow-100]="b.phase==='starter'" [class.text-yellow-700]="b.phase==='starter'"
-                  [class.bg-blue-100]="b.phase==='grower'" [class.text-blue-700]="b.phase==='grower'"
-                  [class.bg-purple-100]="b.phase==='finisher'" [class.text-purple-700]="b.phase==='finisher'"
-                  [class.bg-gray-100]="b.phase==='mature'" [class.text-gray-600]="b.phase==='mature'">{{ b.phase }}</span>
-              </div>
-              <div class="flex justify-between text-xs text-gray-500">
-                <span>{{ b.breed || 'Broiler' }}</span>
-                <span>House: {{ b.houseNumber || '-' }}</span>
-              </div>
-              <div class="flex justify-between items-center mt-2 pt-2 border-t border-gray-100">
-                <div class="flex gap-3">
-                  <div>
-                    <p class="text-[10px] text-gray-400">Birds</p>
-                    <p class="text-sm font-bold text-gray-800">{{ b.currentCount }}<span class="text-gray-400 font-normal">/{{ b.chicksArrived }}</span></p>
-                  </div>
-                  <div>
-                    <p class="text-[10px] text-gray-400">Mortality</p>
-                    <p class="text-sm font-bold text-red-600">{{ b.mortalityPercent }}%</p>
-                  </div>
-                </div>
-                <div class="w-16 bg-gray-200 rounded-full h-1.5">
-                  <div class="h-1.5 rounded-full" [class.bg-green-500]="b.mortalityPercent < 3" [class.bg-yellow-500]="b.mortalityPercent >= 3 && b.mortalityPercent < 5" [class.bg-red-500]="b.mortalityPercent >= 5"
-                    [style.width.%]="100 - b.mortalityPercent"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Desktop: Table -->
-          <div class="hidden md:block bg-white rounded-lg shadow-sm overflow-hidden">
-            <table class="w-full" *ngIf="data.batchSummaries.length > 0">
-              <thead><tr class="text-xs text-gray-400 uppercase border-b bg-gray-50">
-                <th class="text-left py-2.5 px-3">Batch</th>
-                <th class="text-left py-2.5 px-3">Day</th>
-                <th class="text-left py-2.5 px-3">Phase</th>
-                <th class="text-left py-2.5 px-3">Birds</th>
-                <th class="text-left py-2.5 px-3">Mortality</th>
-                <th class="text-left py-2.5 px-3">House</th>
-              </tr></thead>
-              <tbody>
-                <tr *ngFor="let b of data.batchSummaries" class="border-b last:border-0 hover:bg-gray-50">
-                  <td class="py-2 px-3"><p class="font-bold text-gray-800 text-sm">{{ b.batchNumber }}</p><p class="text-[10px] text-gray-400">{{ b.breed }}</p></td>
-                  <td class="py-2 px-3"><span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full text-xs font-bold">Day {{ b.dayCount }}</span></td>
-                  <td class="py-2 px-3"><span class="text-xs px-2 py-0.5 rounded-full capitalize"
+                  <span class="text-[10px] px-2 py-0.5 rounded-full capitalize font-medium"
                     [class.bg-yellow-100]="b.phase==='starter'" [class.text-yellow-700]="b.phase==='starter'"
                     [class.bg-blue-100]="b.phase==='grower'" [class.text-blue-700]="b.phase==='grower'"
                     [class.bg-purple-100]="b.phase==='finisher'" [class.text-purple-700]="b.phase==='finisher'"
-                    [class.bg-gray-100]="b.phase==='mature'" [class.text-gray-600]="b.phase==='mature'">{{ b.phase }}</span></td>
-                  <td class="py-2 px-3 text-sm font-bold">{{ b.currentCount }}/{{ b.chicksArrived }}</td>
-                  <td class="py-2 px-3 text-sm text-red-600">{{ b.mortalityPercent }}%</td>
-                  <td class="py-2 px-3 text-sm text-gray-500">{{ b.houseNumber || '-' }}</td>
-                </tr>
-              </tbody>
-            </table>
+                    [class.bg-gray-100]="b.phase==='mature'" [class.text-gray-600]="b.phase==='mature'">{{ b.phase }}</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between">
+                <div class="flex gap-5">
+                  <div>
+                    <p class="text-[10px] text-gray-400 uppercase">Birds</p>
+                    <p class="text-sm font-bold text-gray-800">{{ b.currentCount | number }}<span class="text-gray-400 font-normal text-xs">/{{ b.chicksArrived | number }}</span></p>
+                  </div>
+                  <div>
+                    <p class="text-[10px] text-gray-400 uppercase">Mortality</p>
+                    <p class="text-sm font-bold" [class.text-green-600]="b.mortalityPercent < 3" [class.text-yellow-600]="b.mortalityPercent >= 3 && b.mortalityPercent < 5" [class.text-red-600]="b.mortalityPercent >= 5">{{ b.mortalityPercent }}%</p>
+                  </div>
+                </div>
+                <div class="flex-1 max-w-[40%] ml-4">
+                  <div class="w-full bg-gray-100 rounded-full h-2">
+                    <div class="h-2 rounded-full transition-all" [class.bg-green-500]="b.mortalityPercent < 3" [class.bg-yellow-500]="b.mortalityPercent >= 3 && b.mortalityPercent < 5" [class.bg-red-500]="b.mortalityPercent >= 5"
+                      [style.width.%]="100 - b.mortalityPercent"></div>
+                  </div>
+                  <p class="text-[9px] text-gray-400 text-right mt-1">{{ 100 - b.mortalityPercent | number:'1.0-1' }}% survival</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Bottom Row -->
+        <!-- Bottom grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <!-- Feed/Water last 7 days -->
-          <div class="bg-white rounded-lg shadow-sm p-3">
-            <h3 class="text-xs font-bold text-gray-500 uppercase mb-2">Last 7 Days</h3>
+          <!-- Last 7 days -->
+          <div class="bg-white rounded-2xl shadow-sm p-4">
+            <h3 class="text-xs font-bold text-gray-500 uppercase mb-3 flex items-center gap-2"><span>📅</span> Last 7 Days</h3>
             <div class="grid grid-cols-2 gap-2">
-              <div class="bg-emerald-50 rounded-lg p-2.5 text-center">
-                <p class="text-[10px] text-gray-400">Feed</p>
-                <p class="text-lg font-bold text-gray-800">{{ data.recentFeed.totalFeedKg | number:'1.0-0' }} <span class="text-xs font-normal text-gray-400">kg</span></p>
+              <div class="bg-emerald-50 rounded-xl p-3 text-center">
+                <div class="text-xl mb-1">🌾</div>
+                <p class="text-lg font-bold text-gray-800">{{ data.recentFeed.totalFeedKg | number:'1.0-0' }}<span class="text-xs font-normal text-gray-400"> kg</span></p>
+                <p class="text-[10px] text-gray-400 uppercase">Feed</p>
               </div>
-              <div class="bg-blue-50 rounded-lg p-2.5 text-center">
-                <p class="text-[10px] text-gray-400">Water</p>
-                <p class="text-lg font-bold text-gray-800">{{ data.recentFeed.totalWaterLiters | number:'1.0-0' }} <span class="text-xs font-normal text-gray-400">L</span></p>
+              <div class="bg-blue-50 rounded-xl p-3 text-center">
+                <div class="text-xl mb-1">💧</div>
+                <p class="text-lg font-bold text-gray-800">{{ data.recentFeed.totalWaterLiters | number:'1.0-0' }}<span class="text-xs font-normal text-gray-400"> L</span></p>
+                <p class="text-[10px] text-gray-400 uppercase">Water</p>
               </div>
             </div>
           </div>
 
-          <!-- Expenses by Category -->
-          <div class="bg-white rounded-lg shadow-sm p-3">
-            <h3 class="text-xs font-bold text-gray-500 uppercase mb-2">Batch Expenses</h3>
-            <div *ngIf="data.expenseByCategory.length === 0" class="text-gray-400 text-xs py-2">No expenses</div>
-            <div class="space-y-1.5">
+          <!-- Expenses by category -->
+          <div class="bg-white rounded-2xl shadow-sm p-4">
+            <h3 class="text-xs font-bold text-gray-500 uppercase mb-3 flex items-center gap-2"><span>🧾</span> Batch Expenses</h3>
+            <div *ngIf="data.expenseByCategory.length === 0" class="text-gray-400 text-xs py-2">No expenses recorded</div>
+            <div class="space-y-2">
               <div *ngFor="let cat of data.expenseByCategory" class="flex items-center justify-between">
                 <span class="text-xs text-gray-600 capitalize">{{ cat._id }}</span>
                 <span class="text-xs font-bold text-gray-800">₹{{ cat.total | number:'1.0-0' }}</span>
               </div>
-              <div class="pt-1.5 border-t" *ngIf="data.expenseByCategory.length > 0">
-                <div class="flex justify-between">
-                  <span class="text-xs font-bold text-gray-700">Total</span>
-                  <span class="text-xs font-bold text-red-600">₹{{ data.totalBatchExpenses | number:'1.0-0' }}</span>
-                </div>
+              <div class="pt-2 border-t border-gray-100 flex justify-between" *ngIf="data.expenseByCategory.length > 0">
+                <span class="text-xs font-bold text-gray-700">Total</span>
+                <span class="text-xs font-bold text-red-600">₹{{ data.totalBatchExpenses | number:'1.0-0' }}</span>
               </div>
             </div>
           </div>
 
-          <!-- Today's Logs -->
-          <div class="bg-white rounded-lg shadow-sm p-3 md:col-span-2">
-            <div class="flex justify-between items-center mb-2">
-              <h3 class="text-xs font-bold text-gray-500 uppercase">Today's Logs</h3>
-              <a routerLink="/daily-logs" class="text-xs text-emerald-600 hover:underline">Log now</a>
+          <!-- Today's logs -->
+          <div class="bg-white rounded-2xl shadow-sm p-4 md:col-span-2">
+            <div class="flex justify-between items-center mb-3">
+              <h3 class="text-xs font-bold text-gray-500 uppercase flex items-center gap-2"><span>📝</span> Today's Logs</h3>
+              <a routerLink="/daily-logs" class="text-xs text-emerald-600 hover:underline font-medium">Log now →</a>
             </div>
-            <div *ngIf="data.todayLogs.length === 0" class="text-gray-400 text-xs py-3 text-center">No logs recorded today. <a routerLink="/daily-logs" class="text-emerald-600 underline">Add now</a></div>
-            <div class="space-y-1.5">
-              <div *ngFor="let log of data.todayLogs" class="flex justify-between items-center py-1.5 border-b last:border-0">
-                <div>
-                  <span class="font-medium text-gray-800 text-sm">{{ log.batch?.batchNumber }}</span>
-                  <span class="text-[10px] text-gray-400 ml-1">Day {{ log.dayNumber }}</span>
+            <div *ngIf="data.todayLogs.length === 0" class="text-gray-400 text-xs py-4 text-center">
+              No logs recorded today. <a routerLink="/daily-logs" class="text-emerald-600 underline">Add now</a>
+            </div>
+            <div class="space-y-1">
+              <div *ngFor="let log of data.todayLogs" class="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">🐔</span>
+                  <div>
+                    <span class="font-medium text-gray-800 text-sm">{{ log.batch?.batchNumber }}</span>
+                    <span class="text-[10px] text-gray-400 ml-1">Day {{ log.dayNumber }}</span>
+                  </div>
                 </div>
-                <div class="flex gap-2 text-[10px] text-gray-500">
-                  <span>🌾{{ log.feedGivenKg }}kg</span>
-                  <span>💧{{ log.waterGivenLiters }}L</span>
-                  <span *ngIf="log.temperature">🌡️{{ log.temperature }}°C</span>
-                  <span *ngIf="log.mortalityCount" class="text-red-500">☠️{{ log.mortalityCount }}</span>
+                <div class="flex gap-3 text-[11px] text-gray-500">
+                  <span>🌾 {{ log.feedGivenKg }}kg</span>
+                  <span>💧 {{ log.waterGivenLiters }}L</span>
+                  <span *ngIf="log.temperature">🌡️ {{ log.temperature }}°C</span>
+                  <span *ngIf="log.mortalityCount" class="text-red-500">☠️ {{ log.mortalityCount }}</span>
                 </div>
               </div>
             </div>
@@ -233,14 +229,40 @@ import { ApiService } from '../../services/api.service';
 export class DashboardComponent implements OnInit {
   data: any = null;
   loading = true;
+  error: string | null = null;
   today = new Date();
 
   constructor(private api: ApiService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
+    this.loadDashboard();
+  }
+
+  loadDashboard() {
+    this.loading = true;
+    this.error = null;
+    this.cdr.detectChanges();
     this.api.getDashboard().subscribe({
-      next: (data) => { this.data = data; this.loading = false; this.cdr.detectChanges(); },
-      error: () => { this.loading = false; this.cdr.detectChanges(); }
+      next: (data) => {
+        this.data = data;
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.error = err?.status === 401
+          ? 'Your session has expired. Please log in again.'
+          : (err?.error?.error || err?.message || 'Something went wrong while loading data.');
+        this.loading = false;
+        this.cdr.detectChanges();
+      }
     });
+  }
+
+  // Width % of the income portion in the income-vs-expense bar
+  incomeBarWidth(): number {
+    const income = this.data?.financials?.totalIncome || 0;
+    const expense = this.data?.financials?.totalExpenses || 0;
+    const total = income + expense;
+    return total === 0 ? 50 : Math.round((income / total) * 100);
   }
 }
