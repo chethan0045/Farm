@@ -32,69 +32,107 @@ import { ApiService } from '../../services/api.service';
 
         <!-- Summary Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6" *ngIf="summary">
-          <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-emerald-500">
-            <p class="text-xs text-gray-500 uppercase tracking-wide">Total Sales</p>
-            <p class="text-2xl font-bold text-emerald-600 mt-1">&#8377;{{ summary.totalSales | number:'1.2-2' }}</p>
+          <div class="bg-white rounded-2xl shadow-sm p-5 hover:shadow-lg transition-all">
+            <div class="flex items-center gap-3">
+              <div class="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center text-xl">🛒</div>
+              <div>
+                <p class="text-xs text-gray-500 uppercase tracking-wide">Total Sales</p>
+                <p class="text-2xl font-bold text-emerald-600 mt-0.5">&#8377;{{ summary.totalSales | number:'1.2-2' }}</p>
+              </div>
+            </div>
           </div>
-          <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-green-500">
-            <p class="text-xs text-gray-500 uppercase tracking-wide">Total Paid</p>
-            <p class="text-2xl font-bold text-green-600 mt-1">&#8377;{{ summary.totalPaid | number:'1.2-2' }}</p>
+          <div class="bg-white rounded-2xl shadow-sm p-5 hover:shadow-lg transition-all">
+            <div class="flex items-center gap-3">
+              <div class="w-11 h-11 rounded-xl bg-green-50 flex items-center justify-center text-xl">💰</div>
+              <div>
+                <p class="text-xs text-gray-500 uppercase tracking-wide">Total Paid</p>
+                <p class="text-2xl font-bold text-green-600 mt-0.5">&#8377;{{ summary.totalPaid | number:'1.2-2' }}</p>
+              </div>
+            </div>
           </div>
-          <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-red-500">
-            <p class="text-xs text-gray-500 uppercase tracking-wide">Total Due</p>
-            <p class="text-2xl font-bold text-red-600 mt-1">&#8377;{{ summary.totalDue | number:'1.2-2' }}</p>
+          <div class="bg-white rounded-2xl shadow-sm p-5 hover:shadow-lg transition-all">
+            <div class="flex items-center gap-3">
+              <div class="w-11 h-11 rounded-xl bg-red-50 flex items-center justify-center text-xl">⏳</div>
+              <div>
+                <p class="text-xs text-gray-500 uppercase tracking-wide">Total Due</p>
+                <p class="text-2xl font-bold text-red-600 mt-0.5">&#8377;{{ summary.totalDue | number:'1.2-2' }}</p>
+              </div>
+            </div>
           </div>
-          <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-yellow-500">
-            <p class="text-xs text-gray-500 uppercase tracking-wide">Pending Orders</p>
-            <p class="text-2xl font-bold text-yellow-600 mt-1">{{ summary.pendingOrders }}</p>
+          <div class="bg-white rounded-2xl shadow-sm p-5 hover:shadow-lg transition-all">
+            <div class="flex items-center gap-3">
+              <div class="w-11 h-11 rounded-xl bg-yellow-50 flex items-center justify-center text-xl">📦</div>
+              <div>
+                <p class="text-xs text-gray-500 uppercase tracking-wide">Pending Orders</p>
+                <p class="text-2xl font-bold text-yellow-600 mt-0.5">{{ summary.pendingOrders }}</p>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div *ngIf="loadingSales" class="text-center py-10 text-gray-500">Loading...</div>
+        <!-- Loading Skeletons -->
+        <div *ngIf="loadingSales" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div *ngFor="let i of [1,2,3,4,5,6]" class="bg-white rounded-2xl shadow-sm p-5 animate-pulse">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-11 h-11 rounded-xl bg-gray-200"></div>
+              <div class="flex-1 space-y-2">
+                <div class="h-3 bg-gray-200 rounded w-2/3"></div>
+                <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+              </div>
+            </div>
+            <div class="flex gap-2 mb-4">
+              <div class="h-5 bg-gray-200 rounded-lg w-16"></div>
+              <div class="h-5 bg-gray-200 rounded-lg w-16"></div>
+              <div class="h-5 bg-gray-200 rounded-lg w-12"></div>
+            </div>
+            <div class="h-8 bg-gray-100 rounded-lg"></div>
+          </div>
+        </div>
 
-        <!-- Sales Table -->
-        <div class="bg-white rounded-xl shadow-sm overflow-x-auto" *ngIf="!loadingSales">
-          <table class="w-full">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Invoice #</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Batch</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Items</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Paid</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Payment</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let s of sales" class="border-t hover:bg-gray-50">
-                <td class="px-4 py-3 text-sm font-medium text-gray-800">{{ s.invoiceNumber }}</td>
-                <td class="px-4 py-3 text-sm">{{ s.date | date:'mediumDate' }}</td>
-                <td class="px-4 py-3 text-sm">{{ s.customer?.name || '-' }}</td>
-                <td class="px-4 py-3 text-sm">{{ s.batch?.batchNumber || '-' }}</td>
-                <td class="px-4 py-3 text-sm">{{ getItemsSummary(s.items) }}</td>
-                <td class="px-4 py-3 text-sm font-bold text-gray-800">&#8377;{{ s.totalAmount | number:'1.2-2' }}</td>
-                <td class="px-4 py-3 text-sm font-medium text-green-600">&#8377;{{ s.paidAmount | number:'1.2-2' }}</td>
-                <td class="px-4 py-3 text-sm">
-                  <span class="px-2 py-1 text-xs rounded-full font-medium"
-                    [class.bg-green-100]="s.paymentStatus==='paid'" [class.text-green-700]="s.paymentStatus==='paid'"
-                    [class.bg-yellow-100]="s.paymentStatus==='partial'" [class.text-yellow-700]="s.paymentStatus==='partial'"
-                    [class.bg-red-100]="s.paymentStatus==='pending'" [class.text-red-700]="s.paymentStatus==='pending'">
+        <!-- Sales Cards -->
+        <div *ngIf="!loadingSales">
+          <div *ngIf="sales.length === 0" class="bg-white rounded-2xl shadow-sm py-16 text-center">
+            <div class="text-5xl mb-3">🛒</div>
+            <p class="text-gray-500 mb-4">No sales records found.</p>
+            <button (click)="openSaleModal()" class="bg-emerald-600 text-white px-5 py-2 rounded-lg hover:bg-emerald-700 transition text-sm font-medium">+ Add Sale</button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" *ngIf="sales.length > 0">
+            <div *ngFor="let s of sales" class="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-lg transition-all">
+              <!-- Header -->
+              <div class="p-5 pb-4 border-b border-gray-100">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center text-xl shrink-0">🛒</div>
+                    <div class="min-w-0">
+                      <p class="font-bold text-gray-800 truncate">{{ s.customer?.name || 'Walk-in Customer' }}</p>
+                      <p class="text-xs text-gray-400 truncate">{{ s.invoiceNumber || 'No invoice' }}</p>
+                    </div>
+                  </div>
+                  <span class="px-2.5 py-1 text-[11px] rounded-full font-semibold capitalize shrink-0" [ngClass]="paymentStatusClass(s.paymentStatus)">
                     {{ s.paymentStatus }}
                   </span>
-                </td>
-                <td class="px-4 py-3 text-sm capitalize">{{ s.paymentMethod || '-' }}</td>
-                <td class="px-4 py-3 text-sm">
-                  <button (click)="openSaleModal(s)" class="text-blue-600 hover:underline mr-2">Edit</button>
-                  <button (click)="deleteSale(s._id)" class="text-red-600 hover:underline">Delete</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <div *ngIf="sales.length === 0" class="text-center py-10 text-gray-400">No sales records found.</div>
+                </div>
+                <p class="text-2xl font-bold text-gray-900 mt-3">&#8377;{{ s.totalAmount | number:'1.0-0' }}</p>
+                <p class="text-xs text-green-600 font-medium mt-0.5">Paid &#8377;{{ s.paidAmount | number:'1.0-0' }}</p>
+              </div>
+
+              <!-- Meta chips -->
+              <div class="px-5 py-4 flex flex-wrap gap-2">
+                <span class="bg-gray-50 text-gray-600 px-2 py-1 rounded-lg text-[11px]">📅 {{ s.date | date:'mediumDate' }}</span>
+                <span class="bg-gray-50 text-gray-600 px-2 py-1 rounded-lg text-[11px]">📋 {{ getItemsSummary(s.items) }}</span>
+                <span *ngIf="totalQuantity(s.items)" class="bg-gray-50 text-gray-600 px-2 py-1 rounded-lg text-[11px]">🔢 Qty {{ totalQuantity(s.items) }}</span>
+                <span *ngIf="s.batch?.batchNumber" class="bg-gray-50 text-gray-600 px-2 py-1 rounded-lg text-[11px]">🐔 {{ s.batch?.batchNumber }}</span>
+                <span *ngIf="s.paymentMethod" class="bg-gray-50 text-gray-600 px-2 py-1 rounded-lg text-[11px] capitalize">💳 {{ s.paymentMethod }}</span>
+              </div>
+
+              <!-- Footer -->
+              <div class="px-5 py-3 bg-gray-50 flex items-center justify-end gap-2 border-t border-gray-100">
+                <button (click)="openSaleModal(s)" class="text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg text-sm font-medium transition">Edit</button>
+                <button (click)="deleteSale(s._id)" class="text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg text-sm font-medium transition">Delete</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -105,42 +143,62 @@ import { ApiService } from '../../services/api.service';
           <button (click)="openCustomerModal()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition text-sm font-medium">+ Add Customer</button>
         </div>
 
-        <div *ngIf="loadingCustomers" class="text-center py-10 text-gray-500">Loading...</div>
+        <!-- Loading Skeletons -->
+        <div *ngIf="loadingCustomers" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div *ngFor="let i of [1,2,3,4,5,6]" class="bg-white rounded-2xl shadow-sm p-5 animate-pulse">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-11 h-11 rounded-xl bg-gray-200"></div>
+              <div class="flex-1 space-y-2">
+                <div class="h-4 bg-gray-200 rounded w-2/3"></div>
+                <div class="h-3 bg-gray-200 rounded w-1/3"></div>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <div class="h-5 bg-gray-200 rounded-lg w-20"></div>
+              <div class="h-5 bg-gray-200 rounded-lg w-24"></div>
+            </div>
+          </div>
+        </div>
 
-        <div class="bg-white rounded-xl shadow-sm overflow-x-auto" *ngIf="!loadingCustomers">
-          <table class="w-full">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Address</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let c of customers" class="border-t hover:bg-gray-50">
-                <td class="px-4 py-3 text-sm font-medium text-gray-800">{{ c.name }}</td>
-                <td class="px-4 py-3 text-sm">{{ c.phone || '-' }}</td>
-                <td class="px-4 py-3 text-sm">{{ c.email || '-' }}</td>
-                <td class="px-4 py-3 text-sm">{{ c.address || '-' }}</td>
-                <td class="px-4 py-3 text-sm">
-                  <span class="px-2 py-1 text-xs rounded-full font-medium"
-                    [class.bg-purple-100]="c.type==='wholesaler'" [class.text-purple-700]="c.type==='wholesaler'"
-                    [class.bg-blue-100]="c.type==='retailer'" [class.text-blue-700]="c.type==='retailer'"
-                    [class.bg-gray-100]="c.type==='individual'" [class.text-gray-700]="c.type==='individual'">
+        <!-- Customer Cards -->
+        <div *ngIf="!loadingCustomers">
+          <div *ngIf="customers.length === 0" class="bg-white rounded-2xl shadow-sm py-16 text-center">
+            <div class="text-5xl mb-3">👤</div>
+            <p class="text-gray-500 mb-4">No customers found.</p>
+            <button (click)="openCustomerModal()" class="bg-emerald-600 text-white px-5 py-2 rounded-lg hover:bg-emerald-700 transition text-sm font-medium">+ Add Customer</button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" *ngIf="customers.length > 0">
+            <div *ngFor="let c of customers" class="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-lg transition-all">
+              <!-- Header -->
+              <div class="p-5 pb-4 border-b border-gray-100">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center text-xl shrink-0">👤</div>
+                    <div class="min-w-0">
+                      <p class="font-bold text-gray-800 truncate">{{ c.name }}</p>
+                      <p class="text-xs text-gray-400 truncate">{{ c.email || 'No email' }}</p>
+                    </div>
+                  </div>
+                  <span class="px-2.5 py-1 text-[11px] rounded-full font-semibold capitalize shrink-0" [ngClass]="customerTypeClass(c.type)">
                     {{ c.type }}
                   </span>
-                </td>
-                <td class="px-4 py-3 text-sm">
-                  <button (click)="openCustomerModal(c)" class="text-blue-600 hover:underline mr-2">Edit</button>
-                  <button (click)="deleteCustomer(c._id)" class="text-red-600 hover:underline">Delete</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <div *ngIf="customers.length === 0" class="text-center py-10 text-gray-400">No customers found.</div>
+                </div>
+              </div>
+
+              <!-- Meta chips -->
+              <div class="px-5 py-4 flex flex-wrap gap-2">
+                <span class="bg-gray-50 text-gray-600 px-2 py-1 rounded-lg text-[11px]">📞 {{ c.phone || '-' }}</span>
+                <span *ngIf="c.address" class="bg-gray-50 text-gray-600 px-2 py-1 rounded-lg text-[11px]">📍 {{ c.address }}</span>
+              </div>
+
+              <!-- Footer -->
+              <div class="px-5 py-3 bg-gray-50 flex items-center justify-end gap-2 border-t border-gray-100">
+                <button (click)="openCustomerModal(c)" class="text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg text-sm font-medium transition">Edit</button>
+                <button (click)="deleteCustomer(c._id)" class="text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg text-sm font-medium transition">Delete</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -422,6 +480,31 @@ export class SalesComponent implements OnInit {
     if (!items || items.length === 0) return '-';
     if (items.length === 1) return items[0].description || '1 item';
     return items.length + ' items';
+  }
+
+  paymentStatusClass(status: string): string {
+    switch (status) {
+      case 'paid': return 'bg-green-100 text-green-700';
+      case 'partial': return 'bg-blue-100 text-blue-700';
+      case 'pending': return 'bg-yellow-100 text-yellow-700';
+      case 'overdue':
+      case 'unpaid': return 'bg-red-100 text-red-700';
+      default: return 'bg-gray-100 text-gray-700';
+    }
+  }
+
+  customerTypeClass(type: string): string {
+    switch (type) {
+      case 'wholesaler': return 'bg-purple-100 text-purple-700';
+      case 'retailer': return 'bg-blue-100 text-blue-700';
+      case 'individual': return 'bg-gray-100 text-gray-700';
+      default: return 'bg-gray-100 text-gray-700';
+    }
+  }
+
+  totalQuantity(items: any[]): number {
+    if (!items || items.length === 0) return 0;
+    return items.reduce((sum: number, it: any) => sum + (it.quantity || 0), 0);
   }
 
   saveSale() {

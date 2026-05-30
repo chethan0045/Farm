@@ -37,44 +37,65 @@ import { ApiService } from '../../services/api.service';
           <button (click)="openVacModal()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition text-sm font-medium">+ Add Vaccination</button>
         </div>
 
-        <div *ngIf="vacLoading" class="text-center py-10 text-gray-500">Loading...</div>
+        <!-- Loading skeletons -->
+        <div *ngIf="vacLoading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div *ngFor="let s of [1,2,3,4,5,6]" class="bg-white rounded-2xl shadow-sm overflow-hidden animate-pulse">
+            <div class="h-1.5 bg-gray-200"></div>
+            <div class="p-4 space-y-3">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gray-200"></div>
+                <div class="flex-1 space-y-2">
+                  <div class="h-3 bg-gray-200 rounded w-2/3"></div>
+                  <div class="h-2 bg-gray-100 rounded w-1/3"></div>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <div class="h-5 bg-gray-100 rounded-lg w-16"></div>
+                <div class="h-5 bg-gray-100 rounded-lg w-20"></div>
+              </div>
+              <div class="h-8 bg-gray-100 rounded-lg"></div>
+            </div>
+          </div>
+        </div>
 
-        <div class="bg-white rounded-xl shadow-sm overflow-x-auto" *ngIf="!vacLoading">
-          <table class="w-full">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Batch</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vaccine Name</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Scheduled Date</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Method</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cost</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let v of vaccinations" class="border-t hover:bg-gray-50">
-                <td class="px-4 py-3 text-sm font-medium">{{ v.batch?.batchNumber || 'N/A' }}</td>
-                <td class="px-4 py-3 text-sm">{{ v.vaccineName }}</td>
-                <td class="px-4 py-3 text-sm">{{ v.scheduledDate | date:'mediumDate' }}</td>
-                <td class="px-4 py-3 text-sm">
-                  <span class="px-2 py-1 text-xs rounded-full font-medium"
-                    [ngClass]="{
-                      'bg-yellow-100 text-yellow-700': v.status === 'scheduled',
-                      'bg-green-100 text-green-700': v.status === 'completed',
-                      'bg-red-100 text-red-700': v.status === 'missed'
-                    }">{{ v.status | titlecase }}</span>
-                </td>
-                <td class="px-4 py-3 text-sm capitalize">{{ v.method?.replace('_', ' ') || '-' }}</td>
-                <td class="px-4 py-3 text-sm font-bold text-gray-700">{{ v.cost ? '₹' + (v.cost | number:'1.2-2') : '-' }}</td>
-                <td class="px-4 py-3 text-sm">
-                  <button (click)="openVacModal(v)" class="text-blue-600 hover:underline mr-2">Edit</button>
-                  <button (click)="deleteVaccination(v._id)" class="text-red-600 hover:underline">Delete</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <div *ngIf="vaccinations.length === 0" class="text-center py-10 text-gray-400">No vaccinations recorded.</div>
+        <!-- Empty state -->
+        <div *ngIf="!vacLoading && vaccinations.length === 0" class="bg-white rounded-2xl shadow-sm py-16 text-center">
+          <div class="text-5xl mb-3">💉</div>
+          <p class="text-gray-500 font-medium mb-1">No vaccinations recorded</p>
+          <p class="text-gray-400 text-sm mb-5">Schedule your first vaccination to keep your flock protected.</p>
+          <button (click)="openVacModal()" class="bg-emerald-600 text-white px-5 py-2 rounded-lg hover:bg-emerald-700 transition text-sm font-medium">+ Add Vaccination</button>
+        </div>
+
+        <!-- Vaccination cards -->
+        <div *ngIf="!vacLoading && vaccinations.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div *ngFor="let v of vaccinations" class="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-lg transition-all">
+            <div [class]="vacAccentClass(v.status)"></div>
+            <div class="p-4">
+              <div class="flex items-start justify-between gap-2 mb-3">
+                <div class="flex items-center gap-3 min-w-0">
+                  <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-lg shrink-0">💉</div>
+                  <div class="min-w-0">
+                    <p class="font-semibold text-gray-800 truncate">{{ v.vaccineName }}</p>
+                    <p class="text-xs text-gray-500 flex items-center gap-1">🐔 {{ v.batch?.batchNumber || 'N/A' }}</p>
+                  </div>
+                </div>
+                <span class="px-2 py-1 text-[11px] rounded-full font-medium whitespace-nowrap" [class]="vacBadgeClass(v.status)">{{ v.status | titlecase }}</span>
+              </div>
+
+              <div class="flex flex-wrap gap-1.5 mb-3">
+                <span class="bg-gray-50 text-gray-600 px-2 py-1 rounded-lg text-[11px]">📅 {{ v.scheduledDate | date:'mediumDate' }}</span>
+                <span *ngIf="v.administeredDate" class="bg-gray-50 text-gray-600 px-2 py-1 rounded-lg text-[11px]">✅ {{ v.administeredDate | date:'mediumDate' }}</span>
+                <span *ngIf="v.method" class="bg-gray-50 text-gray-600 px-2 py-1 rounded-lg text-[11px] capitalize">💊 {{ v.method?.replace('_', ' ') }}</span>
+                <span *ngIf="v.dosage" class="bg-gray-50 text-gray-600 px-2 py-1 rounded-lg text-[11px]">{{ v.dosage }}</span>
+                <span *ngIf="v.cost" class="bg-gray-50 text-gray-600 px-2 py-1 rounded-lg text-[11px] font-semibold">₹{{ v.cost | number:'1.2-2' }}</span>
+              </div>
+
+              <div class="flex items-center gap-2 pt-3 border-t border-gray-100">
+                <button (click)="openVacModal(v)" class="flex-1 text-blue-600 hover:bg-blue-50 rounded-lg py-1.5 text-sm font-medium transition">Edit</button>
+                <button (click)="deleteVaccination(v._id)" class="flex-1 text-red-600 hover:bg-red-50 rounded-lg py-1.5 text-sm font-medium transition">Delete</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -104,57 +125,70 @@ import { ApiService } from '../../services/api.service';
           <button (click)="openHlModal()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition text-sm font-medium">+ Add Health Log</button>
         </div>
 
-        <div *ngIf="hlLoading" class="text-center py-10 text-gray-500">Loading...</div>
+        <!-- Loading skeletons -->
+        <div *ngIf="hlLoading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div *ngFor="let s of [1,2,3,4,5,6]" class="bg-white rounded-2xl shadow-sm overflow-hidden animate-pulse">
+            <div class="h-1.5 bg-gray-200"></div>
+            <div class="p-4 space-y-3">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gray-200"></div>
+                <div class="flex-1 space-y-2">
+                  <div class="h-3 bg-gray-200 rounded w-2/3"></div>
+                  <div class="h-2 bg-gray-100 rounded w-1/3"></div>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <div class="h-5 bg-gray-100 rounded-lg w-16"></div>
+                <div class="h-5 bg-gray-100 rounded-lg w-20"></div>
+              </div>
+              <div class="h-8 bg-gray-100 rounded-lg"></div>
+            </div>
+          </div>
+        </div>
 
-        <div class="bg-white rounded-xl shadow-sm overflow-x-auto" *ngIf="!hlLoading">
-          <table class="w-full">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Batch</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Disease</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Symptoms</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Medicine</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Severity</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Resolved</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cost</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let h of healthLogs" class="border-t hover:bg-gray-50">
-                <td class="px-4 py-3 text-sm font-medium">{{ h.batch?.batchNumber || 'N/A' }}</td>
-                <td class="px-4 py-3 text-sm">{{ h.date | date:'mediumDate' }}</td>
-                <td class="px-4 py-3 text-sm">
-                  <span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700 capitalize">{{ h.type }}</span>
-                </td>
-                <td class="px-4 py-3 text-sm">{{ h.disease || '-' }}</td>
-                <td class="px-4 py-3 text-sm max-w-[150px] truncate">{{ h.symptoms || '-' }}</td>
-                <td class="px-4 py-3 text-sm">{{ h.medicine || '-' }}</td>
-                <td class="px-4 py-3 text-sm">
-                  <span *ngIf="h.severity" class="px-2 py-1 text-xs rounded-full font-medium"
-                    [ngClass]="{
-                      'bg-blue-100 text-blue-700': h.severity === 'low',
-                      'bg-yellow-100 text-yellow-700': h.severity === 'medium',
-                      'bg-orange-100 text-orange-700': h.severity === 'high',
-                      'bg-red-100 text-red-700': h.severity === 'critical'
-                    }">{{ h.severity | titlecase }}</span>
-                  <span *ngIf="!h.severity">-</span>
-                </td>
-                <td class="px-4 py-3 text-sm">
-                  <span *ngIf="h.resolved" class="text-green-600 font-medium">Yes</span>
-                  <span *ngIf="!h.resolved" class="text-red-500">No</span>
-                </td>
-                <td class="px-4 py-3 text-sm font-bold text-gray-700">{{ h.cost ? '₹' + (h.cost | number:'1.2-2') : '-' }}</td>
-                <td class="px-4 py-3 text-sm">
-                  <button (click)="openHlModal(h)" class="text-blue-600 hover:underline mr-2">Edit</button>
-                  <button (click)="deleteHealthLog(h._id)" class="text-red-600 hover:underline">Delete</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <div *ngIf="healthLogs.length === 0" class="text-center py-10 text-gray-400">No health logs recorded.</div>
+        <!-- Empty state -->
+        <div *ngIf="!hlLoading && healthLogs.length === 0" class="bg-white rounded-2xl shadow-sm py-16 text-center">
+          <div class="text-5xl mb-3">🦠</div>
+          <p class="text-gray-500 font-medium mb-1">No health logs recorded</p>
+          <p class="text-gray-400 text-sm mb-5">Log diseases, treatments and observations to track flock health.</p>
+          <button (click)="openHlModal()" class="bg-emerald-600 text-white px-5 py-2 rounded-lg hover:bg-emerald-700 transition text-sm font-medium">+ Add Health Log</button>
+        </div>
+
+        <!-- Health log cards -->
+        <div *ngIf="!hlLoading && healthLogs.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div *ngFor="let h of healthLogs" class="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-lg transition-all">
+            <div [class]="hlAccentClass(h.severity)"></div>
+            <div class="p-4">
+              <div class="flex items-start justify-between gap-2 mb-3">
+                <div class="flex items-center gap-3 min-w-0">
+                  <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-lg shrink-0">{{ hlIcon(h.type) }}</div>
+                  <div class="min-w-0">
+                    <p class="font-semibold text-gray-800 truncate">{{ h.disease || (h.type | titlecase) || 'Health Log' }}</p>
+                    <p class="text-xs text-gray-500 flex items-center gap-1">🐔 {{ h.batch?.batchNumber || 'N/A' }}</p>
+                  </div>
+                </div>
+                <div class="flex flex-col items-end gap-1">
+                  <span *ngIf="h.severity" class="px-2 py-1 text-[11px] rounded-full font-medium whitespace-nowrap" [class]="hlBadgeClass(h.severity)">{{ h.severity | titlecase }}</span>
+                  <span *ngIf="h.resolved" class="px-2 py-0.5 text-[10px] rounded-full font-medium bg-green-100 text-green-700">Resolved</span>
+                  <span *ngIf="!h.resolved" class="px-2 py-0.5 text-[10px] rounded-full font-medium bg-red-100 text-red-700">Open</span>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap gap-1.5 mb-3">
+                <span class="bg-gray-50 text-gray-600 px-2 py-1 rounded-lg text-[11px]">📅 {{ h.date | date:'mediumDate' }}</span>
+                <span class="bg-gray-50 text-gray-600 px-2 py-1 rounded-lg text-[11px] capitalize">{{ h.type }}</span>
+                <span *ngIf="h.medicine" class="bg-gray-50 text-gray-600 px-2 py-1 rounded-lg text-[11px]">💊 {{ h.medicine }}</span>
+                <span *ngIf="h.cost" class="bg-gray-50 text-gray-600 px-2 py-1 rounded-lg text-[11px] font-semibold">₹{{ h.cost | number:'1.2-2' }}</span>
+              </div>
+
+              <p *ngIf="h.symptoms" class="text-xs text-gray-500 mb-3 line-clamp-2">{{ h.symptoms }}</p>
+
+              <div class="flex items-center gap-2 pt-3 border-t border-gray-100">
+                <button (click)="openHlModal(h)" class="flex-1 text-blue-600 hover:bg-blue-50 rounded-lg py-1.5 text-sm font-medium transition">Edit</button>
+                <button (click)="deleteHealthLog(h._id)" class="flex-1 text-red-600 hover:bg-red-50 rounded-lg py-1.5 text-sm font-medium transition">Delete</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -360,6 +394,42 @@ export class HealthComponent implements OnInit {
     this.api.getBatches().subscribe({ next: (b) => this.batches = b });
     this.loadVaccinations();
     this.loadHealthLogs();
+  }
+
+  // ==================== UI HELPERS (full class strings for Tailwind v4) ====================
+
+  vacBadgeClass(status: string): string {
+    if (status === 'completed') return 'bg-green-100 text-green-700';
+    if (status === 'missed') return 'bg-red-100 text-red-700';
+    return 'bg-blue-100 text-blue-700';
+  }
+
+  vacAccentClass(status: string): string {
+    if (status === 'completed') return 'h-1.5 bg-green-500';
+    if (status === 'missed') return 'h-1.5 bg-red-500';
+    return 'h-1.5 bg-blue-500';
+  }
+
+  hlBadgeClass(severity: string): string {
+    if (severity === 'low') return 'bg-blue-100 text-blue-700';
+    if (severity === 'medium') return 'bg-yellow-100 text-yellow-700';
+    if (severity === 'high') return 'bg-orange-100 text-orange-700';
+    if (severity === 'critical') return 'bg-red-100 text-red-700';
+    return 'bg-gray-100 text-gray-700';
+  }
+
+  hlAccentClass(severity: string): string {
+    if (severity === 'low') return 'h-1.5 bg-blue-500';
+    if (severity === 'medium') return 'h-1.5 bg-yellow-500';
+    if (severity === 'high') return 'h-1.5 bg-orange-500';
+    if (severity === 'critical') return 'h-1.5 bg-red-500';
+    return 'h-1.5 bg-gray-300';
+  }
+
+  hlIcon(type: string): string {
+    if (type === 'disease') return '🦠';
+    if (type === 'treatment') return '💊';
+    return '🐔';
   }
 
   // ==================== VACCINATION METHODS ====================

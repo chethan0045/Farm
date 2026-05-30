@@ -20,21 +20,33 @@ import { ApiService } from '../../services/api.service';
 
       <!-- Summary Cards -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white rounded-xl shadow-sm p-4">
-          <p class="text-xs text-gray-500">Total Items</p>
-          <p class="text-2xl font-bold text-gray-800">{{ items.length }}</p>
+        <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center gap-3">
+          <div class="h-10 w-10 rounded-xl bg-gray-100 flex items-center justify-center text-lg">📦</div>
+          <div>
+            <p class="text-xs text-gray-500">Total Items</p>
+            <p class="text-2xl font-bold text-gray-800">{{ items.length }}</p>
+          </div>
         </div>
-        <div class="bg-white rounded-xl shadow-sm p-4">
-          <p class="text-xs text-gray-500">Low Stock</p>
-          <p class="text-2xl font-bold text-red-600">{{ lowStockCount }}</p>
+        <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center gap-3">
+          <div class="h-10 w-10 rounded-xl bg-red-100 flex items-center justify-center text-lg">⚠️</div>
+          <div>
+            <p class="text-xs text-gray-500">Low Stock</p>
+            <p class="text-2xl font-bold text-red-600">{{ lowStockCount }}</p>
+          </div>
         </div>
-        <div class="bg-white rounded-xl shadow-sm p-4">
-          <p class="text-xs text-gray-500">Categories</p>
-          <p class="text-2xl font-bold text-emerald-600">{{ uniqueCategories }}</p>
+        <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center gap-3">
+          <div class="h-10 w-10 rounded-xl bg-emerald-100 flex items-center justify-center text-lg">🏷️</div>
+          <div>
+            <p class="text-xs text-gray-500">Categories</p>
+            <p class="text-2xl font-bold text-emerald-600">{{ uniqueCategories }}</p>
+          </div>
         </div>
-        <div class="bg-white rounded-xl shadow-sm p-4">
-          <p class="text-xs text-gray-500">Total Value</p>
-          <p class="text-2xl font-bold text-gray-800">{{ totalValue | number:'1.2-2' }}</p>
+        <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center gap-3">
+          <div class="h-10 w-10 rounded-xl bg-amber-100 flex items-center justify-center text-lg">💰</div>
+          <div>
+            <p class="text-xs text-gray-500">Total Value</p>
+            <p class="text-2xl font-bold text-gray-800">{{ totalValue | number:'1.2-2' }}</p>
+          </div>
         </div>
       </div>
 
@@ -56,105 +68,81 @@ import { ApiService } from '../../services/api.service';
         </button>
       </div>
 
-      <!-- Loading -->
-      <div *ngIf="loading" class="text-center py-10 text-gray-500">Loading...</div>
-
-      <!-- Items Table (Desktop) -->
-      <div *ngIf="!loading && filteredItems.length > 0" class="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
-        <!-- Desktop Table -->
-        <div class="hidden md:block overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead class="bg-gray-50 text-gray-600 text-xs uppercase tracking-wide">
-              <tr>
-                <th class="text-left px-4 py-3">Name</th>
-                <th class="text-left px-4 py-3">Category</th>
-                <th class="text-right px-4 py-3">Stock</th>
-                <th class="text-left px-4 py-3">Unit</th>
-                <th class="text-right px-4 py-3">Min Level</th>
-                <th class="text-right px-4 py-3">Cost/Unit</th>
-                <th class="text-left px-4 py-3">Supplier</th>
-                <th class="text-left px-4 py-3">Expiry</th>
-                <th class="text-center px-4 py-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-              <tr *ngFor="let item of filteredItems"
-                class="hover:bg-gray-50 cursor-pointer transition"
-                [class.bg-red-50]="isLowStock(item)"
-                (click)="selectItem(item)">
-                <td class="px-4 py-3 font-medium text-gray-800">
-                  {{ item.name }}
-                  <span *ngIf="isLowStock(item)" class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">LOW</span>
-                </td>
-                <td class="px-4 py-3">
-                  <span class="px-2 py-0.5 rounded-full text-xs font-medium capitalize"
-                    [ngClass]="getCategoryClass(item.category)">
-                    {{ item.category }}
-                  </span>
-                </td>
-                <td class="px-4 py-3 text-right font-semibold" [class.text-red-600]="isLowStock(item)" [class.text-gray-800]="!isLowStock(item)">
-                  {{ item.currentStock | number }}
-                </td>
-                <td class="px-4 py-3 text-gray-500">{{ item.unit }}</td>
-                <td class="px-4 py-3 text-right text-gray-500">{{ item.minStockLevel | number }}</td>
-                <td class="px-4 py-3 text-right text-gray-700">{{ item.costPerUnit | number:'1.2-2' }}</td>
-                <td class="px-4 py-3 text-gray-600">{{ item.supplier || '-' }}</td>
-                <td class="px-4 py-3 text-gray-500">
-                  <span *ngIf="item.expiryDate" [class.text-red-600]="isExpired(item)" [class.font-semibold]="isExpired(item)">
-                    {{ item.expiryDate | date:'mediumDate' }}
-                  </span>
-                  <span *ngIf="!item.expiryDate">-</span>
-                </td>
-                <td class="px-4 py-3 text-center" (click)="$event.stopPropagation()">
-                  <button (click)="openItemModal(item)" class="text-blue-600 hover:underline text-xs mr-2">Edit</button>
-                  <button (click)="deleteItem(item._id)" class="text-red-600 hover:underline text-xs">Delete</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Mobile Cards -->
-        <div class="md:hidden divide-y divide-gray-100">
-          <div *ngFor="let item of filteredItems"
-            class="p-4 cursor-pointer transition"
-            [class.bg-red-50]="isLowStock(item)"
-            (click)="selectItem(item)">
-            <div class="flex justify-between items-start mb-2">
-              <div>
-                <h4 class="font-medium text-gray-800">{{ item.name }}</h4>
-                <span class="px-2 py-0.5 rounded-full text-xs font-medium capitalize"
-                  [ngClass]="getCategoryClass(item.category)">
-                  {{ item.category }}
-                </span>
-              </div>
-              <span *ngIf="isLowStock(item)" class="px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">LOW</span>
+      <!-- Loading Skeleton -->
+      <div *ngIf="loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+        <div *ngFor="let s of [1,2,3,4,5,6]" class="bg-white rounded-2xl shadow-sm overflow-hidden animate-pulse">
+          <div class="h-1.5 bg-gray-200"></div>
+          <div class="p-4 space-y-4">
+            <div class="flex justify-between items-center">
+              <div class="h-4 w-1/2 bg-gray-200 rounded"></div>
+              <div class="h-5 w-16 bg-gray-200 rounded-full"></div>
             </div>
-            <div class="grid grid-cols-3 gap-2 text-xs mt-2">
-              <div>
-                <p class="text-gray-500">Stock</p>
-                <p class="font-bold" [class.text-red-600]="isLowStock(item)">{{ item.currentStock }} {{ item.unit }}</p>
-              </div>
-              <div>
-                <p class="text-gray-500">Min Level</p>
-                <p class="font-semibold text-gray-700">{{ item.minStockLevel }}</p>
-              </div>
-              <div>
-                <p class="text-gray-500">Cost/Unit</p>
-                <p class="font-semibold text-gray-700">{{ item.costPerUnit | number:'1.2-2' }}</p>
-              </div>
-            </div>
-            <div class="flex gap-3 mt-3 pt-2 border-t" (click)="$event.stopPropagation()">
-              <button (click)="openItemModal(item)" class="text-xs text-blue-600 hover:underline">Edit</button>
-              <button (click)="deleteItem(item._id)" class="text-xs text-red-600 hover:underline">Delete</button>
+            <div class="h-2 w-full bg-gray-100 rounded-full"></div>
+            <div class="h-7 w-1/3 bg-gray-200 rounded"></div>
+            <div class="grid grid-cols-2 gap-2">
+              <div class="h-6 bg-gray-100 rounded"></div>
+              <div class="h-6 bg-gray-100 rounded"></div>
             </div>
           </div>
         </div>
       </div>
 
+      <!-- Items Card Grid -->
+      <div *ngIf="!loading && filteredItems.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+        <div *ngFor="let item of filteredItems"
+          (click)="selectItem(item)"
+          class="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-lg transition-all cursor-pointer">
+          <!-- Accent bar -->
+          <div class="h-1.5" [ngClass]="isLowStock(item) ? 'bg-red-500' : 'bg-emerald-500'"></div>
+
+          <div class="p-4">
+            <!-- Header -->
+            <div class="flex justify-between items-start gap-2 mb-3">
+              <h4 class="font-bold text-gray-800 leading-tight">{{ item.name }}</h4>
+              <span *ngIf="isLowStock(item)" class="shrink-0 px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">LOW</span>
+            </div>
+            <div class="mb-3">
+              <span class="px-2 py-0.5 rounded-full text-xs font-medium capitalize"
+                [ngClass]="getCategoryClass(item.category)">
+                {{ item.category }}
+              </span>
+            </div>
+
+            <!-- Stock bar -->
+            <div class="w-full bg-gray-100 rounded-full h-2 mb-3">
+              <div class="h-2 rounded-full transition-all" [ngClass]="stockBarColor(item)" [style.width]="stockBarWidth(item)"></div>
+            </div>
+
+            <!-- Stock figure -->
+            <p class="text-2xl font-bold mb-3" [ngClass]="isLowStock(item) ? 'text-red-600' : 'text-gray-800'">
+              {{ item.currentStock | number }} <span class="text-sm font-medium text-gray-400">{{ item.unit }}</span>
+            </p>
+
+            <!-- Meta chips -->
+            <div class="flex flex-wrap gap-2 text-xs">
+              <span class="px-2 py-1 rounded-lg bg-gray-50 text-gray-600">Min: {{ item.minStockLevel | number }}</span>
+              <span class="px-2 py-1 rounded-lg bg-gray-50 text-gray-600">Cost: {{ item.costPerUnit | number:'1.2-2' }}</span>
+              <span *ngIf="item.supplier" class="px-2 py-1 rounded-lg bg-gray-50 text-gray-600 truncate max-w-[140px]">{{ item.supplier }}</span>
+              <span *ngIf="item.expiryDate" class="px-2 py-1 rounded-lg bg-gray-50"
+                [ngClass]="isExpired(item) ? 'text-red-600 font-semibold' : 'text-gray-600'">
+                Exp: {{ item.expiryDate | date:'mediumDate' }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div class="flex gap-2 px-4 py-3 border-t border-gray-100 bg-gray-50/50" (click)="$event.stopPropagation()">
+            <button (click)="openItemModal(item)" class="flex-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 py-1.5 rounded-lg transition">Edit</button>
+            <button (click)="deleteItem(item._id)" class="flex-1 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 py-1.5 rounded-lg transition">Delete</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Empty State -->
-      <div *ngIf="!loading && filteredItems.length === 0" class="text-center py-10 text-gray-400">
-        <p>{{ filterCategory ? 'No items in this category.' : 'No inventory items yet. Add your first item!' }}</p>
+      <div *ngIf="!loading && filteredItems.length === 0" class="bg-white rounded-2xl shadow-sm text-center py-14 px-4 mb-6">
+        <div class="text-5xl mb-3">📦</div>
+        <p class="text-gray-500 mb-4">{{ filterCategory ? 'No items in this category.' : 'No inventory items yet. Add your first item!' }}</p>
+        <button (click)="openItemModal()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition text-sm font-medium">+ Add Item</button>
       </div>
 
       <!-- Transaction Panel -->
@@ -436,6 +424,16 @@ export class InventoryComponent implements OnInit {
   isExpired(item: any): boolean {
     if (!item.expiryDate) return false;
     return new Date(item.expiryDate) < new Date();
+  }
+
+  stockBarWidth(item: any): string {
+    const denom = (item.minStockLevel * 2) || 1;
+    const pct = Math.min(100, (item.currentStock / denom) * 100);
+    return `${Math.max(0, pct)}%`;
+  }
+
+  stockBarColor(item: any): string {
+    return this.isLowStock(item) ? 'bg-red-500' : 'bg-emerald-500';
   }
 
   getCategoryClass(category: string): Record<string, boolean> {

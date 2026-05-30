@@ -68,13 +68,27 @@ import { ApiService } from '../../services/api.service';
       </div>
 
       <!-- Loading State -->
-      <div *ngIf="loading" class="text-center py-10 text-gray-500">Loading alerts...</div>
+      <div *ngIf="loading" class="space-y-3">
+        <div *ngFor="let s of [1,2,3,4]" class="bg-white rounded-2xl shadow-sm p-4 border-l-4 border-gray-200 animate-pulse">
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gray-200 flex-shrink-0"></div>
+            <div class="flex-1 space-y-2.5 py-0.5">
+              <div class="flex items-center gap-2">
+                <div class="h-4 w-40 bg-gray-200 rounded"></div>
+                <div class="h-4 w-16 bg-gray-100 rounded-full"></div>
+              </div>
+              <div class="h-3 w-full bg-gray-100 rounded"></div>
+              <div class="h-3 w-1/3 bg-gray-100 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- Empty State -->
-      <div *ngIf="!loading && filteredAlerts.length === 0" class="bg-white rounded-xl shadow-sm p-10 text-center">
-        <p class="text-4xl mb-3">🔔</p>
-        <p class="text-gray-500 text-lg">No alerts found</p>
-        <p class="text-gray-400 text-sm mt-1">Click "Generate Alerts" to scan for issues</p>
+      <div *ngIf="!loading && filteredAlerts.length === 0" class="bg-white rounded-2xl shadow-sm p-12 text-center">
+        <p class="text-5xl mb-4">🎉</p>
+        <p class="text-gray-700 text-lg font-semibold">No alerts — all clear!</p>
+        <p class="text-gray-400 text-sm mt-1">Everything looks healthy. Click "Generate Alerts" to scan for new issues.</p>
       </div>
 
       <!-- Unread Alerts -->
@@ -83,14 +97,17 @@ import { ApiService } from '../../services/api.service';
         <div class="space-y-3">
           <div
             *ngFor="let alert of unreadAlerts"
-            [class]="getCardClass(alert)"
-            class="rounded-xl shadow-sm p-4 border-l-4 transition-all">
+            [class]="getStripeClass(alert.severity)"
+            class="bg-white rounded-2xl shadow-sm hover:shadow-md p-4 border-l-4 transition-all">
 
             <div class="flex items-start justify-between gap-3">
               <div class="flex items-start gap-3 flex-1 min-w-0">
-                <span class="text-2xl flex-shrink-0">{{ getTypeIcon(alert.type) }}</span>
+                <div [class]="getIconBadgeClass(alert.severity)" class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <span class="text-xl leading-none">{{ getTypeIcon(alert.type) }}</span>
+                </div>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-base leading-none">{{ getSeverityEmoji(alert.severity) }}</span>
                     <h4 class="font-semibold text-gray-800">{{ alert.title }}</h4>
                     <span [class]="getSeverityBadgeClass(alert.severity)" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase">
                       {{ alert.severity }}
@@ -99,23 +116,23 @@ import { ApiService } from '../../services/api.service';
                       {{ alert.type }}
                     </span>
                   </div>
-                  <p class="text-sm text-gray-600 mt-1">{{ alert.message }}</p>
-                  <div class="flex items-center gap-3 mt-2 text-xs text-gray-400">
-                    <span *ngIf="alert.batchName">Batch: <strong class="text-gray-600">{{ alert.batchName }}</strong></span>
-                    <span>{{ alert.createdAt | date:'medium' }}</span>
+                  <p class="text-sm text-gray-600 mt-1.5">{{ alert.message }}</p>
+                  <div class="flex items-center gap-3 mt-2.5 text-xs text-gray-400">
+                    <span *ngIf="alert.batchName">🐔 Batch: <strong class="text-gray-600">{{ alert.batchName }}</strong></span>
+                    <span>🕒 {{ alert.createdAt | date:'medium' }}</span>
                   </div>
                 </div>
               </div>
-              <div class="flex gap-1 flex-shrink-0">
+              <div class="flex gap-1.5 flex-shrink-0">
                 <button
                   (click)="markRead(alert)"
-                  class="px-3 py-1.5 text-xs font-medium bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors">
+                  class="px-3 py-1.5 text-xs font-semibold bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors">
                   Mark Read
                 </button>
                 <button
                   (click)="resolve(alert)"
                   *ngIf="!alert.resolved"
-                  class="px-3 py-1.5 text-xs font-medium bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors">
+                  class="px-3 py-1.5 text-xs font-semibold bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors">
                   Resolve
                 </button>
               </div>
@@ -130,11 +147,14 @@ import { ApiService } from '../../services/api.service';
         <div class="space-y-3">
           <div
             *ngFor="let alert of readAlerts"
-            class="bg-gray-50 rounded-xl shadow-sm p-4 border-l-4 border-gray-300 opacity-70 transition-all">
+            [class]="getStripeClass(alert.severity)"
+            class="bg-white rounded-2xl shadow-sm hover:shadow-md p-4 border-l-4 opacity-70 transition-all">
 
             <div class="flex items-start justify-between gap-3">
               <div class="flex items-start gap-3 flex-1 min-w-0">
-                <span class="text-2xl flex-shrink-0">{{ getTypeIcon(alert.type) }}</span>
+                <div class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0">
+                  <span class="text-xl leading-none grayscale">{{ getTypeIcon(alert.type) }}</span>
+                </div>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2 flex-wrap">
                     <h4 class="font-semibold text-gray-600">{{ alert.title }}</h4>
@@ -145,21 +165,24 @@ import { ApiService } from '../../services/api.service';
                       {{ alert.type }}
                     </span>
                     <span *ngIf="alert.resolved" class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-600 uppercase">
-                      Resolved
+                      ✓ Resolved
+                    </span>
+                    <span *ngIf="!alert.resolved" class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-500 uppercase">
+                      Read
                     </span>
                   </div>
-                  <p class="text-sm text-gray-500 mt-1">{{ alert.message }}</p>
-                  <div class="flex items-center gap-3 mt-2 text-xs text-gray-400">
-                    <span *ngIf="alert.batchName">Batch: <strong class="text-gray-500">{{ alert.batchName }}</strong></span>
-                    <span>{{ alert.createdAt | date:'medium' }}</span>
+                  <p class="text-sm text-gray-500 mt-1.5">{{ alert.message }}</p>
+                  <div class="flex items-center gap-3 mt-2.5 text-xs text-gray-400">
+                    <span *ngIf="alert.batchName">🐔 Batch: <strong class="text-gray-500">{{ alert.batchName }}</strong></span>
+                    <span>🕒 {{ alert.createdAt | date:'medium' }}</span>
                   </div>
                 </div>
               </div>
-              <div class="flex gap-1 flex-shrink-0">
+              <div class="flex gap-1.5 flex-shrink-0">
                 <button
                   (click)="resolve(alert)"
                   *ngIf="!alert.resolved"
-                  class="px-3 py-1.5 text-xs font-medium bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors">
+                  class="px-3 py-1.5 text-xs font-semibold bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors">
                   Resolve
                 </button>
               </div>
@@ -323,6 +346,48 @@ export class AlertsComponent implements OnInit {
         return 'bg-red-200 text-red-800';
       default:
         return 'bg-gray-100 text-gray-600';
+    }
+  }
+
+  getStripeClass(severity: string): string {
+    switch (severity) {
+      case 'critical':
+      case 'danger':
+        return 'border-red-500';
+      case 'warning':
+        return 'border-yellow-500';
+      case 'info':
+        return 'border-blue-500';
+      default:
+        return 'border-gray-300';
+    }
+  }
+
+  getIconBadgeClass(severity: string): string {
+    switch (severity) {
+      case 'critical':
+      case 'danger':
+        return 'bg-red-50';
+      case 'warning':
+        return 'bg-yellow-50';
+      case 'info':
+        return 'bg-blue-50';
+      default:
+        return 'bg-gray-50';
+    }
+  }
+
+  getSeverityEmoji(severity: string): string {
+    switch (severity) {
+      case 'critical':
+      case 'danger':
+        return '🔴';
+      case 'warning':
+        return '🟠';
+      case 'info':
+        return '🔵';
+      default:
+        return '⚪';
     }
   }
 }
