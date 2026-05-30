@@ -13,7 +13,7 @@ import { ApiService } from '../../services/api.service';
       <div class="flex items-center justify-between mb-4">
         <div>
           <h2 class="text-xl md:text-2xl font-bold text-gray-800">Dashboard</h2>
-          <p class="text-xs text-gray-400">{{ today | date:'EEEE, mediumDate' }}</p>
+          <p class="text-xs text-gray-400">{{ today | date:'EEEE, MMM d, y' }}</p>
         </div>
         <button (click)="loadDashboard()" [disabled]="loading"
           class="flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 disabled:opacity-50 px-3 py-1.5 rounded-lg transition">
