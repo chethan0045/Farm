@@ -81,39 +81,58 @@ import { ApiService } from '../../services/api.service';
       </div>
 
       <!-- Devices List -->
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        <div *ngFor="let device of devices" class="bg-white rounded-xl shadow-sm border p-4">
-          <div class="flex justify-between items-start mb-2">
-            <div>
-              <h3 class="font-bold text-gray-800">{{ device.name }}</h3>
-              <p class="text-xs text-gray-500">{{ device.deviceId }}</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" *ngIf="devices.length > 0">
+        <div *ngFor="let device of devices" class="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-lg transition-all">
+          <!-- Status accent bar -->
+          <div class="h-1.5" [ngClass]="deviceAccent(device)"></div>
+          <div class="p-4">
+            <div class="flex justify-between items-start mb-3">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg" [ngClass]="deviceIconBg(device)">{{ deviceIcon(device) }}</div>
+                <div>
+                  <h3 class="font-bold text-gray-800 leading-tight">{{ device.name }}</h3>
+                  <p class="text-[11px] text-gray-400 font-mono">{{ device.deviceId }}</p>
+                </div>
+              </div>
+              <span class="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize" [ngClass]="deviceStatusPill(device)">
+                <span class="w-1.5 h-1.5 rounded-full" [ngClass]="deviceDot(device)" [class.animate-pulse]="device.status === 'online'"></span>
+                {{ device.status }}
+              </span>
             </div>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-medium"
-              [class.bg-green-100]="device.status === 'online'" [class.text-green-700]="device.status === 'online'"
-              [class.bg-red-100]="device.status === 'offline'" [class.text-red-700]="device.status === 'offline'"
-              [class.bg-yellow-100]="device.status === 'maintenance'" [class.text-yellow-700]="device.status === 'maintenance'">
-              {{ device.status }}
-            </span>
-          </div>
-          <div class="space-y-1 text-xs text-gray-600">
-            <p>House: <span class="font-medium">{{ device.houseNumber }}</span></p>
-            <p>Type: <span class="font-medium">{{ device.deviceType }}</span></p>
-            <p *ngIf="device.firmwareVersion">Firmware: {{ device.firmwareVersion }}</p>
-            <p *ngIf="device.lastSeen">Last Seen: {{ device.lastSeen | date:'short' }}</p>
-            <div class="flex flex-wrap gap-1 mt-1">
-              <span *ngFor="let cap of device.capabilities" class="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded text-[10px]">{{ cap }}</span>
+
+            <!-- Meta chips -->
+            <div class="flex flex-wrap gap-1.5 mb-3">
+              <span class="bg-gray-50 text-gray-600 px-2 py-1 rounded-lg text-[11px]">🏠 House {{ device.houseNumber }}</span>
+              <span class="bg-gray-50 text-gray-600 px-2 py-1 rounded-lg text-[11px] capitalize">🔌 {{ device.deviceType }}</span>
+              <span *ngIf="device.firmwareVersion" class="bg-gray-50 text-gray-600 px-2 py-1 rounded-lg text-[11px]">⚙️ v{{ device.firmwareVersion }}</span>
             </div>
-          </div>
-          <div class="flex gap-2 mt-3 pt-3 border-t">
-            <button (click)="editDevice(device)" class="text-xs text-blue-600 hover:underline">Edit</button>
-            <button (click)="deleteDevice(device._id)" class="text-xs text-red-600 hover:underline">Deactivate</button>
+
+            <!-- Last seen -->
+            <p class="text-[11px] mb-3 flex items-center gap-1.5" [class.text-emerald-600]="device.status === 'online'" [class.text-gray-400]="device.status !== 'online'">
+              <span>🕓</span> {{ device.lastSeen ? (lastSeen(device.lastSeen) + ' ago') : 'never connected' }}
+            </p>
+
+            <!-- Capability pills -->
+            <div class="flex flex-wrap gap-1" *ngIf="device.capabilities?.length">
+              <span *ngFor="let cap of device.capabilities" class="flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium"
+                [ngClass]="cap.startsWith('relay_') ? 'bg-indigo-50 text-indigo-600' : 'bg-emerald-50 text-emerald-600'">
+                {{ capIcon(cap) }} {{ capLabel(cap) }}
+              </span>
+            </div>
+
+            <div class="flex gap-3 mt-3 pt-3 border-t border-gray-100 text-xs">
+              <button (click)="editDevice(device)" class="text-blue-600 hover:underline font-medium">Edit</button>
+              <button (click)="deleteDevice(device._id)" class="text-red-600 hover:underline font-medium">Deactivate</button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div *ngIf="devices.length === 0" class="bg-white rounded-xl shadow-sm border p-8 text-center">
-        <p class="text-gray-500 text-lg mb-2">No devices registered</p>
-        <p class="text-gray-400 text-sm">Click "Register Device" to add your first ESP32 sensor</p>
+      <div *ngIf="devices.length === 0" class="bg-white rounded-2xl shadow-sm p-10 text-center">
+        <div class="text-4xl mb-2">📡</div>
+        <p class="text-gray-600 font-medium mb-1">No devices registered</p>
+        <p class="text-gray-400 text-sm mb-4">Add your first ESP32 sensor to start monitoring</p>
+        <button (click)="showForm = true; resetForm()" class="bg-emerald-600 text-white px-5 py-2.5 rounded-xl hover:bg-emerald-700 font-medium">+ Register Device</button>
       </div>
     </div>
   `
@@ -181,5 +200,40 @@ export class DevicesComponent implements OnInit {
 
   copyApiKey() {
     navigator.clipboard.writeText(this.newApiKey);
+  }
+
+  // --- Card UI helpers ---
+  deviceAccent(d: any): string {
+    return d.status === 'online' ? 'bg-emerald-500' : d.status === 'maintenance' ? 'bg-yellow-400' : 'bg-gray-300';
+  }
+  deviceStatusPill(d: any): string {
+    return d.status === 'online' ? 'bg-emerald-100 text-emerald-700'
+      : d.status === 'maintenance' ? 'bg-yellow-100 text-yellow-700'
+      : 'bg-gray-100 text-gray-500';
+  }
+  deviceDot(d: any): string {
+    return d.status === 'online' ? 'bg-emerald-500' : d.status === 'maintenance' ? 'bg-yellow-500' : 'bg-gray-400';
+  }
+  deviceIcon(d: any): string {
+    return d.deviceType === 'controller' ? '🎛️' : d.deviceType === 'combo' ? '🛰️' : '📡';
+  }
+  deviceIconBg(d: any): string {
+    return d.status === 'online' ? 'bg-emerald-100' : 'bg-gray-100';
+  }
+  capLabel(cap: string): string { return cap.replace('relay_', ''); }
+  capIcon(cap: string): string {
+    const map: any = {
+      temperature: '🌡️', humidity: '💧', ammonia: '🫧', co2: '🟢', light: '💡',
+      feedLevel: '🌾', waterLevel: '🚰', relay_fan: '🌀', relay_light: '💡',
+      relay_heater: '🔥', relay_feeder: '🍽️', relay_waterPump: '🚰'
+    };
+    return map[cap] || '•';
+  }
+  lastSeen(date: string): string {
+    const s = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
+    if (s < 60) return s + 's';
+    const m = Math.floor(s / 60); if (m < 60) return m + 'm';
+    const h = Math.floor(m / 60); if (h < 24) return h + 'h';
+    return Math.floor(h / 24) + 'd';
   }
 }

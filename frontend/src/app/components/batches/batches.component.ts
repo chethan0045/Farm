@@ -14,69 +14,95 @@ import { ApiService } from '../../services/api.service';
         <button (click)="openModal()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition text-sm font-medium">+ New Batch</button>
       </div>
 
-      <div *ngIf="loading" class="text-center py-10 text-gray-500">Loading...</div>
+      <!-- Loading skeleton -->
+      <div *ngIf="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div *ngFor="let i of [1,2,3]" class="bg-white rounded-2xl shadow-sm h-64 animate-pulse"></div>
+      </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" *ngIf="!loading">
-        <div *ngFor="let b of batches" class="bg-white rounded-xl shadow-sm p-5 hover:shadow-md transition">
-          <!-- Header -->
-          <div class="flex justify-between items-start mb-2">
-            <div>
-              <h3 class="text-lg font-bold text-gray-800">{{ b.batchNumber }}</h3>
-              <p class="text-sm text-gray-500">{{ b.breed || 'Broiler' }} &middot; {{ b.shedType === 'ec' ? 'EC Shed' : b.shedType === 'open' ? 'Open Shed' : 'Semi Shed' }}</p>
+      <!-- Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" *ngIf="!loading && batches.length > 0">
+        <div *ngFor="let b of batches" class="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all">
+          <!-- Gradient header (colored by phase) -->
+          <div class="p-4 text-white bg-gradient-to-br" [ngClass]="batchHeaderClass(b)">
+            <div class="flex justify-between items-start">
+              <div>
+                <h3 class="text-lg font-bold leading-tight">{{ b.batchNumber }}</h3>
+                <p class="text-xs opacity-90">{{ b.breed || 'Broiler' }} · {{ b.shedType === 'ec' ? 'EC Shed' : b.shedType === 'open' ? 'Open Shed' : 'Semi Shed' }}</p>
+              </div>
+              <span class="flex items-center gap-1 bg-white/20 px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize">
+                <span class="w-1.5 h-1.5 rounded-full bg-white"></span>{{ b.status }}
+              </span>
             </div>
-            <span class="px-2 py-1 text-xs rounded-full font-medium"
-              [class.bg-green-100]="b.status==='active'" [class.text-green-700]="b.status==='active'"
-              [class.bg-blue-100]="b.status==='sold'" [class.text-blue-700]="b.status==='sold'"
-              [class.bg-gray-100]="b.status==='completed'" [class.text-gray-600]="b.status==='completed'">
-              {{ b.status }}
-            </span>
-          </div>
-
-          <!-- Day Count Badge -->
-          <div class="flex items-center gap-2 mb-3">
-            <span class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm font-bold">
-              Day {{ b.dayCount }}
-            </span>
-            <span class="text-xs px-2 py-1 rounded-full capitalize"
-              [class.bg-yellow-100]="b.phase==='starter'" [class.text-yellow-700]="b.phase==='starter'"
-              [class.bg-blue-100]="b.phase==='grower'" [class.text-blue-700]="b.phase==='grower'"
-              [class.bg-purple-100]="b.phase==='finisher'" [class.text-purple-700]="b.phase==='finisher'"
-              [class.bg-gray-100]="b.phase==='mature'" [class.text-gray-700]="b.phase==='mature'">
-              {{ b.phase }} phase
-            </span>
-          </div>
-
-          <!-- Stats Grid -->
-          <div class="grid grid-cols-2 gap-2 text-sm">
-            <div class="bg-gray-50 rounded-lg p-2">
-              <p class="text-gray-500 text-xs">Arrived</p>
-              <p class="font-bold text-gray-800">{{ b.chicksArrived | number }}</p>
-            </div>
-            <div class="bg-gray-50 rounded-lg p-2">
-              <p class="text-gray-500 text-xs">Current</p>
-              <p class="font-bold" [class.text-green-600]="b.currentCount > 0" [class.text-red-600]="b.currentCount === 0">{{ b.currentCount | number }}</p>
-            </div>
-            <div class="bg-gray-50 rounded-lg p-2">
-              <p class="text-gray-500 text-xs">Mortality</p>
-              <p class="font-bold text-red-600">{{ b.mortalityPercent }}%</p>
-            </div>
-            <div class="bg-gray-50 rounded-lg p-2">
-              <p class="text-gray-500 text-xs">House</p>
-              <p class="font-bold text-gray-800">{{ b.houseNumber || 'N/A' }}</p>
+            <div class="flex items-center gap-2 mt-3">
+              <span class="bg-white/25 px-2.5 py-0.5 rounded-full text-xs font-bold">Day {{ b.dayCount }}</span>
+              <span class="bg-white/15 px-2 py-0.5 rounded-full text-[10px] capitalize">{{ b.phase }} phase</span>
             </div>
           </div>
 
-          <div class="text-xs text-gray-500 mt-2">Arrived: {{ b.arrivalDate | date:'mediumDate' }}</div>
-          <div *ngIf="b.supplier" class="text-xs text-gray-500">Supplier: {{ b.supplier }}</div>
+          <!-- Body -->
+          <div class="p-4">
+            <div class="flex items-center gap-4">
+              <!-- Survival ring -->
+              <div class="relative shrink-0">
+                <svg viewBox="0 0 64 64" class="w-16 h-16 -rotate-90">
+                  <circle cx="32" cy="32" r="28" fill="none" stroke="#eef2f5" stroke-width="6"></circle>
+                  <circle cx="32" cy="32" r="28" fill="none" [attr.stroke]="ringColor(b)" stroke-width="6" stroke-linecap="round"
+                    [attr.stroke-dasharray]="ringCirc" [attr.stroke-dashoffset]="ringOffset(b)" class="transition-all"></circle>
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                  <span class="text-sm font-bold text-gray-800">{{ survival(b) | number:'1.0-0' }}%</span>
+                  <span class="text-[8px] text-gray-400 uppercase tracking-wide">alive</span>
+                </div>
+              </div>
+              <!-- Counts -->
+              <div class="flex-1 grid grid-cols-2 gap-y-2 gap-x-3 text-sm">
+                <div>
+                  <p class="text-[10px] text-gray-400 uppercase">Arrived</p>
+                  <p class="font-bold text-gray-800">{{ b.chicksArrived | number }}</p>
+                </div>
+                <div>
+                  <p class="text-[10px] text-gray-400 uppercase">Now</p>
+                  <p class="font-bold" [class.text-green-600]="b.currentCount > 0" [class.text-red-600]="b.currentCount === 0">{{ b.currentCount | number }}</p>
+                </div>
+                <div>
+                  <p class="text-[10px] text-gray-400 uppercase">Mortality</p>
+                  <p class="font-bold text-red-600">{{ b.mortalityPercent }}%</p>
+                </div>
+                <div>
+                  <p class="text-[10px] text-gray-400 uppercase">House</p>
+                  <p class="font-bold text-gray-800">🏠 {{ b.houseNumber || 'N/A' }}</p>
+                </div>
+              </div>
+            </div>
 
-          <div class="mt-3 flex gap-2 border-t pt-3">
-            <button (click)="openModal(b)" class="text-sm text-blue-600 hover:underline">Edit</button>
-            <button (click)="deleteBatch(b._id)" class="text-sm text-red-600 hover:underline">Delete</button>
+            <!-- Grow-cycle progress -->
+            <div class="mt-4">
+              <div class="flex justify-between text-[10px] text-gray-400 mb-1">
+                <span>Grow cycle</span><span>Day {{ b.dayCount }} / 42</span>
+              </div>
+              <div class="w-full bg-gray-100 rounded-full h-1.5">
+                <div class="h-1.5 rounded-full bg-emerald-500 transition-all" [style.width.%]="dayProgress(b)"></div>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 text-[11px] text-gray-400">
+              <span>📅 {{ b.arrivalDate | date:'mediumDate' }}</span>
+              <div class="flex gap-3">
+                <button (click)="openModal(b)" class="text-blue-600 hover:underline font-medium">Edit</button>
+                <button (click)="deleteBatch(b._id)" class="text-red-600 hover:underline font-medium">Delete</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div *ngIf="!loading && batches.length === 0" class="text-center py-10 text-gray-400">No batches yet. Add your first batch!</div>
+      <!-- Empty state -->
+      <div *ngIf="!loading && batches.length === 0" class="bg-white rounded-2xl shadow-sm p-10 text-center">
+        <div class="text-4xl mb-2">🐣</div>
+        <p class="text-gray-600 font-medium mb-1">No batches yet</p>
+        <p class="text-gray-400 text-sm mb-4">Add your first batch to start tracking</p>
+        <button (click)="openModal()" class="bg-emerald-600 text-white px-5 py-2.5 rounded-xl hover:bg-emerald-700 font-medium">+ New Batch</button>
+      </div>
 
       <!-- Modal -->
       <div *ngIf="showModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -159,8 +185,27 @@ export class BatchesComponent implements OnInit {
   editId = '';
   form: any = this.getEmptyForm();
 
+  readonly ringCirc = 2 * Math.PI * 28; // survival ring circumference
+
   constructor(private api: ApiService) {}
   ngOnInit() { this.loadBatches(); }
+
+  survival(b: any): number { return Math.max(0, 100 - (b?.mortalityPercent || 0)); }
+  ringOffset(b: any): number { return this.ringCirc * (1 - this.survival(b) / 100); }
+  dayProgress(b: any): number { return Math.min(100, Math.round(((b?.dayCount || 0) / 42) * 100)); }
+  ringColor(b: any): string {
+    const m = b?.mortalityPercent || 0;
+    return m < 3 ? '#10b981' : m < 5 ? '#f59e0b' : '#ef4444';
+  }
+  batchHeaderClass(b: any): string {
+    switch (b?.phase) {
+      case 'starter': return 'from-amber-400 to-amber-600';
+      case 'grower': return 'from-blue-500 to-blue-700';
+      case 'finisher': return 'from-purple-500 to-purple-700';
+      case 'mature': return 'from-gray-500 to-gray-700';
+      default: return 'from-emerald-500 to-emerald-700';
+    }
+  }
 
   getEmptyForm() {
     return { batchNumber: '', chicksArrived: 0, arrivalDate: '', breed: '', birdType: 'broiler', supplier: '', shedType: 'ec', houseNumber: '', status: 'active', notes: '' };
