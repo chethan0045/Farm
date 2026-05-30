@@ -59,10 +59,31 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/sensor-alerts', sensorAlertRoutes);
 app.use('/api/escalation-policies', escalationPolicyRoutes);
 
-// Serve Angular frontend in production
-app.use(express.static(path.join(__dirname, '..', 'public')));
+// Serve Angular frontend in production.
+// Hashed bundles (main-*.js, chunk-*.js, styles-*.css) are content-addressed,
+// so cache them forever; index.html must NEVER be cached, otherwise a browser
+// can hold a stale index that references deleted bundles -> blank screen.
+const publicDir = path.join(__dirname, '..', 'public');
+app.use(express.static(publicDir, {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('index.html')) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    } else {
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    }
+  }
+}));
+
+// SPA fallback for client-side routes. Only serve index.html for navigation
+// requests (no file extension). A request for a missing asset (e.g. an old
+// hashed bundle) must 404 instead of silently returning index.html as HTML —
+// returning HTML where JS is expected white-screens the app with no error.
 app.get(/^\/(?!api).*/, (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
+  if (path.extname(req.path)) {
+    return res.status(404).send('Not found');
+  }
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.sendFile(path.join(publicDir, 'index.html'));
 });
 
 // Health check
