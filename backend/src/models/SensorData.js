@@ -13,6 +13,16 @@ const sensorDataSchema = new mongoose.Schema({
   feedLevelPercent: { type: Number },
   waterLevelPercent: { type: Number },
 
+  // Extra climate-controller metrics (e.g. ABIS NL-X16). All optional.
+  targetTemperature: { type: Number },
+  airVelocity: { type: Number },
+  waterTemperature: { type: Number },
+  staticPressure: { type: Number },
+  targetStaticPressure: { type: Number },
+  outdoorTemp: { type: Number },
+  ventLevel: { type: Number },
+  airVolume: { type: Number },
+
   rssi: { type: Number },
   freeHeapBytes: { type: Number }
 }, { timestamps: false });

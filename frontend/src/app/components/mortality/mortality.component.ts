@@ -10,7 +10,7 @@ import { ApiService } from '../../services/api.service';
   template: `
     <div>
       <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold text-gray-800">Mortality Records</h2>
+        <h2 class="text-2xl ctrl-title">Mortality Records</h2>
         <button (click)="openModal()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition text-sm font-medium">+ Record Mortality</button>
       </div>
 

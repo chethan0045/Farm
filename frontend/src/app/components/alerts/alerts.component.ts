@@ -12,14 +12,15 @@ import { ApiService } from '../../services/api.service';
       <!-- Header -->
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
         <div>
-          <h2 class="text-2xl font-bold text-gray-800">Smart Alerts</h2>
-          <p class="text-sm text-gray-500 mt-1">KVS Poultry Farms - Automated Issue Detection</p>
+          <p class="ctrl-eyebrow">ABIS Control · Insights</p>
+          <h2 class="text-2xl ctrl-title">Smart Alerts</h2>
+          <p class="text-sm ctrl-sub mt-1">KVS Poultry Farms - Automated Issue Detection</p>
         </div>
         <div class="flex gap-2">
           <button
             (click)="generateAlerts()"
             [disabled]="generating"
-            class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors">
+            class="ctrl-btn disabled:opacity-50 disabled:cursor-not-allowed">
             <span *ngIf="!generating">Generate Alerts</span>
             <span *ngIf="generating">Generating...</span>
           </button>
@@ -34,26 +35,26 @@ import { ApiService } from '../../services/api.service';
 
       <!-- Stats Bar -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-emerald-500">
+        <div class="ctrl-card p-4 border-l-4 border-emerald-500">
           <p class="text-[10px] text-gray-500 uppercase tracking-wide">Total Alerts</p>
           <p class="text-2xl font-bold text-gray-800 mt-1">{{ alerts.length }}</p>
         </div>
-        <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-blue-500">
+        <div class="ctrl-card p-4 border-l-4 border-blue-500">
           <p class="text-[10px] text-gray-500 uppercase tracking-wide">Unread</p>
           <p class="text-2xl font-bold text-blue-600 mt-1">{{ unreadCount }}</p>
         </div>
-        <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-red-500">
+        <div class="ctrl-card p-4 border-l-4 border-red-500">
           <p class="text-[10px] text-gray-500 uppercase tracking-wide">Critical</p>
           <p class="text-2xl font-bold text-red-600 mt-1">{{ criticalCount }}</p>
         </div>
-        <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-yellow-500">
+        <div class="ctrl-card p-4 border-l-4 border-yellow-500">
           <p class="text-[10px] text-gray-500 uppercase tracking-wide">Warnings</p>
           <p class="text-2xl font-bold text-yellow-600 mt-1">{{ warningCount }}</p>
         </div>
       </div>
 
       <!-- Filter Bar -->
-      <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
+      <div class="ctrl-card p-4 mb-6">
         <div class="flex flex-wrap gap-2">
           <button
             *ngFor="let f of filterOptions"
@@ -69,7 +70,7 @@ import { ApiService } from '../../services/api.service';
 
       <!-- Loading State -->
       <div *ngIf="loading" class="space-y-3">
-        <div *ngFor="let s of [1,2,3,4]" class="bg-white rounded-2xl shadow-sm p-4 border-l-4 border-gray-200 animate-pulse">
+        <div *ngFor="let s of [1,2,3,4]" class="ctrl-card p-4 border-l-4 border-gray-200 animate-pulse">
           <div class="flex items-start gap-3">
             <div class="w-10 h-10 rounded-xl bg-gray-200 flex-shrink-0"></div>
             <div class="flex-1 space-y-2.5 py-0.5">
@@ -85,7 +86,7 @@ import { ApiService } from '../../services/api.service';
       </div>
 
       <!-- Empty State -->
-      <div *ngIf="!loading && filteredAlerts.length === 0" class="bg-white rounded-2xl shadow-sm p-12 text-center">
+      <div *ngIf="!loading && filteredAlerts.length === 0" class="ctrl-card p-12 text-center">
         <p class="text-5xl mb-4">🎉</p>
         <p class="text-gray-700 text-lg font-semibold">No alerts — all clear!</p>
         <p class="text-gray-400 text-sm mt-1">Everything looks healthy. Click "Generate Alerts" to scan for new issues.</p>
@@ -98,7 +99,7 @@ import { ApiService } from '../../services/api.service';
           <div
             *ngFor="let alert of unreadAlerts"
             [class]="getStripeClass(alert.severity)"
-            class="bg-white rounded-2xl shadow-sm hover:shadow-md p-4 border-l-4 transition-all">
+            class="ctrl-card hover:shadow-md p-4 border-l-4 transition-all">
 
             <div class="flex items-start justify-between gap-3">
               <div class="flex items-start gap-3 flex-1 min-w-0">
@@ -148,7 +149,7 @@ import { ApiService } from '../../services/api.service';
           <div
             *ngFor="let alert of readAlerts"
             [class]="getStripeClass(alert.severity)"
-            class="bg-white rounded-2xl shadow-sm hover:shadow-md p-4 border-l-4 opacity-70 transition-all">
+            class="ctrl-card hover:shadow-md p-4 border-l-4 opacity-70 transition-all">
 
             <div class="flex items-start justify-between gap-3">
               <div class="flex items-start gap-3 flex-1 min-w-0">

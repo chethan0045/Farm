@@ -259,4 +259,14 @@ export class ApiService {
   getSensorAlertUnreadCount(): Observable<any> { return this.http.get(`${this.apiUrl}/sensor-alerts/unread-count`); }
   markSensorAlertRead(id: string): Observable<any> { return this.http.put(`${this.apiUrl}/sensor-alerts/${id}/read`, {}); }
   resolveSensorAlert(id: string): Observable<any> { return this.http.put(`${this.apiUrl}/sensor-alerts/${id}/resolve`, {}); }
+
+  // Cameras
+  getCameras(params?: any): Observable<any[]> {
+    let p = new HttpParams(); if (params) Object.keys(params).forEach(k => { if (params[k]) p = p.set(k, params[k]); });
+    return this.http.get<any[]>(`${this.apiUrl}/cameras`, { params: p });
+  }
+  getCamera(id: string): Observable<any> { return this.http.get(`${this.apiUrl}/cameras/${id}`); }
+  createCamera(data: any): Observable<any> { return this.http.post(`${this.apiUrl}/cameras`, data); }
+  updateCamera(id: string, data: any): Observable<any> { return this.http.put(`${this.apiUrl}/cameras/${id}`, data); }
+  deleteCamera(id: string): Observable<any> { return this.http.delete(`${this.apiUrl}/cameras/${id}`); }
 }

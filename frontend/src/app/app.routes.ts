@@ -24,6 +24,8 @@ export const routes: Routes = [
       { path: 'device-control', loadComponent: () => import('./components/device-control/device-control.component').then(m => m.DeviceControlComponent) },
       { path: 'automation-rules', loadComponent: () => import('./components/automation-rules/automation-rules.component').then(m => m.AutomationRulesComponent) },
       { path: 'ai-insights', loadComponent: () => import('./components/ai-insights/ai-insights.component').then(m => m.AiInsightsComponent) },
+      { path: 'cameras', loadComponent: () => import('./components/cameras/cameras.component').then(m => m.CamerasComponent) },
+      { path: 'climate-live', loadComponent: () => import('./components/climate-live/climate-live.component').then(m => m.ClimateLiveComponent) },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },

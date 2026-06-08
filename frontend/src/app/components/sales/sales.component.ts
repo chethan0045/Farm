@@ -26,7 +26,7 @@ import { ApiService } from '../../services/api.service';
       <!-- ==================== SALES TAB ==================== -->
       <div *ngIf="activeTab==='sales'">
         <div class="flex justify-between items-center mb-6">
-          <h2 class="text-2xl font-bold text-gray-800">Sales</h2>
+          <h2 class="text-2xl ctrl-title">Sales</h2>
           <button (click)="openSaleModal()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition text-sm font-medium">+ Add Sale</button>
         </div>
 
@@ -139,7 +139,7 @@ import { ApiService } from '../../services/api.service';
       <!-- ==================== CUSTOMERS TAB ==================== -->
       <div *ngIf="activeTab==='customers'">
         <div class="flex justify-between items-center mb-6">
-          <h2 class="text-2xl font-bold text-gray-800">Customers</h2>
+          <h2 class="text-2xl ctrl-title">Customers</h2>
           <button (click)="openCustomerModal()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition text-sm font-medium">+ Add Customer</button>
         </div>
 

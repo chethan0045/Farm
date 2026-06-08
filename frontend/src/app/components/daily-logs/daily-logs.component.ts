@@ -10,8 +10,8 @@ import { ApiService } from '../../services/api.service';
   template: `
     <div>
       <div class="flex flex-wrap justify-between items-center mb-6 gap-3">
-        <h2 class="text-2xl font-bold text-gray-800">Daily Monitoring</h2>
-        <button (click)="openModal()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition text-sm font-medium">+ Add Daily Log</button>
+        <div><p class="ctrl-eyebrow">ABIS Control · Farm</p><h2 class="text-2xl ctrl-title">Daily Monitoring</h2></div>
+        <button (click)="openModal()" class="ctrl-btn">+ Add Daily Log</button>
       </div>
 
       <!-- Batch selector + Analytics -->
@@ -25,31 +25,31 @@ import { ApiService } from '../../services/api.service';
       <!-- Analytics Cards -->
       <div *ngIf="analytics" class="mb-6">
         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-4">
-          <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-emerald-500">
+          <div class="ctrl-card p-4 border-l-4 border-emerald-500">
             <p class="text-[10px] text-gray-500 uppercase tracking-wide">Day</p>
             <p class="text-2xl font-bold text-emerald-700">{{ analytics.dayCount }}</p>
             <p class="text-xs text-emerald-600 capitalize">{{ analytics.phase }} phase</p>
           </div>
-          <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-blue-500">
+          <div class="ctrl-card p-4 border-l-4 border-blue-500">
             <p class="text-[10px] text-gray-500 uppercase tracking-wide">FCR</p>
             <p class="text-2xl font-bold" [class.text-green-600]="analytics.fcr > 0 && analytics.fcr <= 1.8" [class.text-yellow-600]="analytics.fcr > 1.8 && analytics.fcr <= 2.2" [class.text-red-600]="analytics.fcr > 2.2" [class.text-gray-400]="analytics.fcr === 0">
               {{ analytics.fcr || '-' }}
             </p>
             <p class="text-[10px] text-gray-400">Target: 1.5-1.8</p>
           </div>
-          <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-yellow-500">
+          <div class="ctrl-card p-4 border-l-4 border-yellow-500">
             <p class="text-[10px] text-gray-500 uppercase tracking-wide">Feed/Bird/Day</p>
             <p class="text-xl font-bold text-gray-800">{{ analytics.feedPerBirdPerDay }}g</p>
           </div>
-          <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-cyan-500">
+          <div class="ctrl-card p-4 border-l-4 border-cyan-500">
             <p class="text-[10px] text-gray-500 uppercase tracking-wide">Water/Bird/Day</p>
             <p class="text-xl font-bold text-gray-800">{{ analytics.waterPerBirdPerDay }}ml</p>
           </div>
-          <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-purple-500">
+          <div class="ctrl-card p-4 border-l-4 border-purple-500">
             <p class="text-[10px] text-gray-500 uppercase tracking-wide">Avg Weight</p>
             <p class="text-xl font-bold text-gray-800">{{ analytics.latestWeightGrams }}g</p>
           </div>
-          <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-red-500">
+          <div class="ctrl-card p-4 border-l-4 border-red-500">
             <p class="text-[10px] text-gray-500 uppercase tracking-wide">Mortality</p>
             <p class="text-xl font-bold text-red-600">{{ analytics.mortalityPercent }}%</p>
             <p class="text-[10px] text-gray-400">{{ analytics.totalMortality }} birds</p>
@@ -62,7 +62,7 @@ import { ApiService } from '../../services/api.service';
         </div>
 
         <!-- Phase Guide -->
-        <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
+        <div class="ctrl-card p-4 mb-4">
           <h3 class="font-semibold text-gray-800 mb-2 text-sm">Phase Guide (Day {{ analytics.dayCount }})</h3>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
             <div class="p-3 rounded-lg" [class.bg-emerald-50]="analytics.phase==='starter'" [class.border-emerald-300]="analytics.phase==='starter'" [class.border]="analytics.phase==='starter'" [class.bg-gray-50]="analytics.phase!=='starter'">
@@ -84,7 +84,7 @@ import { ApiService } from '../../services/api.service';
       <div *ngIf="loading" class="text-center py-10 text-gray-500">Loading...</div>
 
       <!-- Logs Table -->
-      <div class="bg-white rounded-xl shadow-sm overflow-x-auto" *ngIf="!loading && selectedBatch">
+      <div class="ctrl-card overflow-x-auto" *ngIf="!loading && selectedBatch">
         <table class="w-full">
           <thead class="bg-gray-50">
             <tr>

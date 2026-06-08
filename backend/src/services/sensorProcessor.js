@@ -17,6 +17,14 @@ async function processSensorData(device, reading) {
     lightIntensity: reading.lightIntensity,
     feedLevelPercent: reading.feedLevelPercent,
     waterLevelPercent: reading.waterLevelPercent,
+    targetTemperature: reading.targetTemperature,
+    airVelocity: reading.airVelocity,
+    waterTemperature: reading.waterTemperature,
+    staticPressure: reading.staticPressure,
+    targetStaticPressure: reading.targetStaticPressure,
+    outdoorTemp: reading.outdoorTemp,
+    ventLevel: reading.ventLevel,
+    airVolume: reading.airVolume,
     rssi: reading.rssi,
     freeHeapBytes: reading.freeHeapBytes
   });

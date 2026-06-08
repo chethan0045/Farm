@@ -25,6 +25,7 @@ const automationRuleRoutes = require('./routes/automationRules');
 const aiRoutes = require('./routes/ai');
 const sensorAlertRoutes = require('./routes/sensorAlerts');
 const escalationPolicyRoutes = require('./routes/escalationPolicies');
+const cameraRoutes = require('./routes/cameras');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -58,6 +59,7 @@ app.use('/api/automation-rules', automationRuleRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/sensor-alerts', sensorAlertRoutes);
 app.use('/api/escalation-policies', escalationPolicyRoutes);
+app.use('/api/cameras', cameraRoutes);
 
 // Serve Angular frontend in production.
 // Hashed bundles (main-*.js, chunk-*.js, styles-*.css) are content-addressed,
@@ -96,6 +98,7 @@ const { startAlertScheduler } = require('./services/alertGenerator');
 const { startDeviceHealthChecker } = require('./services/deviceManager');
 const { startAIScheduler } = require('./services/aiEngine');
 const { startEscalationChecker } = require('./services/alertEscalation');
+const { startDtuListener } = require('./services/dtuListener');
 connectDB().then(() => {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
@@ -103,5 +106,6 @@ connectDB().then(() => {
     startDeviceHealthChecker();
     startAIScheduler();
     startEscalationChecker();
+    startDtuListener(); // only runs if DTU_LISTENER_PORT is set
   });
 });

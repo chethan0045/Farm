@@ -10,7 +10,7 @@ import { ApiService } from '../../services/api.service';
   template: `
     <div>
       <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold text-gray-800">Health & Vaccination</h2>
+        <h2 class="text-2xl ctrl-title">Health & Vaccination</h2>
       </div>
 
       <!-- Tabs -->

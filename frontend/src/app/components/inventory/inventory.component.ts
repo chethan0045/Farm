@@ -12,36 +12,37 @@ import { ApiService } from '../../services/api.service';
       <!-- Header -->
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h2 class="text-2xl font-bold text-gray-800">Inventory Management</h2>
-          <p class="text-sm text-gray-500 mt-1">Track feed, medicine, vaccines, equipment & supplies</p>
+          <p class="ctrl-eyebrow">ABIS Control · Farm</p>
+          <h2 class="text-2xl ctrl-title">Inventory Management</h2>
+          <p class="text-sm ctrl-sub mt-1">Track feed, medicine, vaccines, equipment & supplies</p>
         </div>
-        <button (click)="openItemModal()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition text-sm font-medium">+ Add Item</button>
+        <button (click)="openItemModal()" class="ctrl-btn">+ Add Item</button>
       </div>
 
       <!-- Summary Cards -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center gap-3">
+        <div class="ctrl-card p-4 flex items-center gap-3">
           <div class="h-10 w-10 rounded-xl bg-gray-100 flex items-center justify-center text-lg">📦</div>
           <div>
             <p class="text-xs text-gray-500">Total Items</p>
             <p class="text-2xl font-bold text-gray-800">{{ items.length }}</p>
           </div>
         </div>
-        <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center gap-3">
+        <div class="ctrl-card p-4 flex items-center gap-3">
           <div class="h-10 w-10 rounded-xl bg-red-100 flex items-center justify-center text-lg">⚠️</div>
           <div>
             <p class="text-xs text-gray-500">Low Stock</p>
             <p class="text-2xl font-bold text-red-600">{{ lowStockCount }}</p>
           </div>
         </div>
-        <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center gap-3">
+        <div class="ctrl-card p-4 flex items-center gap-3">
           <div class="h-10 w-10 rounded-xl bg-emerald-100 flex items-center justify-center text-lg">🏷️</div>
           <div>
             <p class="text-xs text-gray-500">Categories</p>
             <p class="text-2xl font-bold text-emerald-600">{{ uniqueCategories }}</p>
           </div>
         </div>
-        <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center gap-3">
+        <div class="ctrl-card p-4 flex items-center gap-3">
           <div class="h-10 w-10 rounded-xl bg-amber-100 flex items-center justify-center text-lg">💰</div>
           <div>
             <p class="text-xs text-gray-500">Total Value</p>
@@ -70,7 +71,7 @@ import { ApiService } from '../../services/api.service';
 
       <!-- Loading Skeleton -->
       <div *ngIf="loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-        <div *ngFor="let s of [1,2,3,4,5,6]" class="bg-white rounded-2xl shadow-sm overflow-hidden animate-pulse">
+        <div *ngFor="let s of [1,2,3,4,5,6]" class="ctrl-card overflow-hidden animate-pulse">
           <div class="h-1.5 bg-gray-200"></div>
           <div class="p-4 space-y-4">
             <div class="flex justify-between items-center">
@@ -91,7 +92,7 @@ import { ApiService } from '../../services/api.service';
       <div *ngIf="!loading && filteredItems.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <div *ngFor="let item of filteredItems"
           (click)="selectItem(item)"
-          class="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-lg transition-all cursor-pointer">
+          class="ctrl-card overflow-hidden hover:shadow-lg transition-all cursor-pointer">
           <!-- Accent bar -->
           <div class="h-1.5" [ngClass]="isLowStock(item) ? 'bg-red-500' : 'bg-emerald-500'"></div>
 
@@ -139,14 +140,14 @@ import { ApiService } from '../../services/api.service';
       </div>
 
       <!-- Empty State -->
-      <div *ngIf="!loading && filteredItems.length === 0" class="bg-white rounded-2xl shadow-sm text-center py-14 px-4 mb-6">
+      <div *ngIf="!loading && filteredItems.length === 0" class="ctrl-card text-center py-14 px-4 mb-6">
         <div class="text-5xl mb-3">📦</div>
         <p class="text-gray-500 mb-4">{{ filterCategory ? 'No items in this category.' : 'No inventory items yet. Add your first item!' }}</p>
         <button (click)="openItemModal()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition text-sm font-medium">+ Add Item</button>
       </div>
 
       <!-- Transaction Panel -->
-      <div *ngIf="selectedItem" class="bg-white rounded-xl shadow-sm p-5 mb-6">
+      <div *ngIf="selectedItem" class="ctrl-card p-5 mb-6">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
           <div>
             <h3 class="text-lg font-bold text-gray-800">{{ selectedItem.name }} - Transactions</h3>

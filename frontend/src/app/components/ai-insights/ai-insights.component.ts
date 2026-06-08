@@ -11,15 +11,16 @@ import { ApiService } from '../../services/api.service';
     <div class="space-y-6">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <h1 class="text-2xl font-bold text-gray-800">AI Insights</h1>
-          <p class="text-sm text-gray-500">AI-powered predictions, analysis, and recommendations</p>
+          <p class="ctrl-eyebrow">ABIS Control · Insights</p>
+          <h1 class="text-2xl ctrl-title">AI Insights</h1>
+          <p class="text-sm ctrl-sub">AI-powered predictions, analysis, and recommendations</p>
         </div>
         <div class="flex gap-2">
           <select [(ngModel)]="selectedBatch" (change)="loadData()" class="border rounded-lg px-3 py-2 text-sm">
             <option value="">All Batches</option>
             <option *ngFor="let b of batches" [value]="b._id">{{ b.batchNumber }}</option>
           </select>
-          <button (click)="runAnalysis()" [disabled]="analyzing" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-emerald-700 disabled:opacity-50">
+          <button (click)="runAnalysis()" [disabled]="analyzing" class="ctrl-btn disabled:opacity-50">
             {{ analyzing ? 'Analyzing...' : 'Run Analysis' }}
           </button>
         </div>
@@ -27,25 +28,25 @@ import { ApiService } from '../../services/api.service';
 
       <!-- AI Dashboard Summary -->
       <div *ngIf="dashboard" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div class="bg-white rounded-xl shadow-sm border p-4 text-center">
+        <div class="ctrl-card border p-4 text-center">
           <p class="text-3xl font-bold text-gray-800">{{ dashboard.systemHealth?.analyzedBatches || 0 }}</p>
           <p class="text-sm text-gray-500">Batches Analyzed</p>
         </div>
-        <div class="bg-white rounded-xl shadow-sm border p-4 text-center">
+        <div class="ctrl-card border p-4 text-center">
           <p class="text-3xl font-bold" [class.text-red-600]="dashboard.systemHealth?.highRiskBatches > 0"
             [class.text-green-600]="dashboard.systemHealth?.highRiskBatches === 0">
             {{ dashboard.systemHealth?.highRiskBatches || 0 }}
           </p>
           <p class="text-sm text-gray-500">High Risk Batches</p>
         </div>
-        <div class="bg-white rounded-xl shadow-sm border p-4 text-center">
+        <div class="ctrl-card border p-4 text-center">
           <p class="text-3xl font-bold text-amber-600">{{ dashboard.systemHealth?.totalRecommendations || 0 }}</p>
           <p class="text-sm text-gray-500">Active Recommendations</p>
         </div>
       </div>
 
       <!-- Batch Metrics -->
-      <div *ngIf="dashboard?.batchMetrics?.length" class="bg-white rounded-xl shadow-sm border p-4">
+      <div *ngIf="dashboard?.batchMetrics?.length" class="ctrl-card border p-4">
         <h2 class="font-bold text-gray-800 mb-3">Batch Health Overview</h2>
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
@@ -107,7 +108,7 @@ import { ApiService } from '../../services/api.service';
 
       <!-- Insights List -->
       <div class="space-y-3">
-        <div *ngFor="let insight of insights" class="bg-white rounded-xl shadow-sm border p-4">
+        <div *ngFor="let insight of insights" class="ctrl-card border p-4">
           <div class="flex justify-between items-start">
             <div class="flex-1">
               <div class="flex items-center gap-2 mb-1">
@@ -143,13 +144,13 @@ import { ApiService } from '../../services/api.service';
         </div>
       </div>
 
-      <div *ngIf="insights.length === 0 && !analyzing" class="bg-white rounded-xl shadow-sm border p-8 text-center">
+      <div *ngIf="insights.length === 0 && !analyzing" class="ctrl-card border p-8 text-center">
         <p class="text-gray-500 mb-2">No insights available</p>
         <p class="text-gray-400 text-sm">Click "Run Analysis" to generate AI insights for your active batches</p>
       </div>
 
       <!-- Recommendations -->
-      <div *ngIf="recommendations.length > 0" class="bg-white rounded-xl shadow-sm border p-4">
+      <div *ngIf="recommendations.length > 0" class="ctrl-card border p-4">
         <h2 class="font-bold text-gray-800 mb-3">Top Recommendations</h2>
         <div class="space-y-2">
           <div *ngFor="let rec of recommendations" class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">

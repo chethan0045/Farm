@@ -11,8 +11,9 @@ import { ApiService } from '../../services/api.service';
     <div class="space-y-6">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <h1 class="text-2xl font-bold text-gray-800">Automation Rules</h1>
-          <p class="text-sm text-gray-500">Configure sensor-based automation triggers</p>
+          <p class="ctrl-eyebrow">ABIS Control · Control</p>
+          <h1 class="text-2xl ctrl-title">Automation Rules</h1>
+          <p class="text-sm ctrl-sub">Configure sensor-based automation triggers</p>
         </div>
         <div class="flex gap-2">
           <button (click)="showPresets = true" class="border border-emerald-600 text-emerald-600 px-4 py-2 rounded-lg text-sm hover:bg-emerald-50">
