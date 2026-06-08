@@ -68,7 +68,9 @@ app.use('/api/cameras', cameraRoutes);
 const publicDir = path.join(__dirname, '..', 'public');
 app.use(express.static(publicDir, {
   setHeaders: (res, filePath) => {
-    if (filePath.endsWith('index.html')) {
+    // index.html and PWA control files must never be cached, otherwise phones
+    // keep a stale app shell / never pick up a new service worker.
+    if (/(index\.html|service-worker\.js|manifest\.webmanifest)$/.test(filePath)) {
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     } else {
       res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
