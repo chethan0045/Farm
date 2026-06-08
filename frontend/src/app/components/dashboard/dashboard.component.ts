@@ -30,19 +30,19 @@ import { HouseVizComponent } from '../climate-live/house-viz.component';
 
       <!-- KPI cards (always show once data loaded) -->
       <div *ngIf="data" class="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
-        <div class="rounded-2xl shadow-sm p-4 text-white bg-gradient-to-br from-emerald-500 to-emerald-600">
+        <div class="kpi-tile rounded-2xl shadow-sm p-4 text-white bg-gradient-to-br from-emerald-500 to-emerald-600">
           <div class="flex items-center justify-between"><span class="text-2xl">🐔</span><span class="text-[10px] font-medium uppercase tracking-wide opacity-90">Active Batches</span></div>
           <p class="text-3xl font-bold mt-2 ctrl-readout">{{ data.activeBatchCount }}</p>
         </div>
-        <div class="rounded-2xl shadow-sm p-4 text-white bg-gradient-to-br from-blue-500 to-blue-600">
+        <div class="kpi-tile rounded-2xl shadow-sm p-4 text-white bg-gradient-to-br from-blue-500 to-blue-600">
           <div class="flex items-center justify-between"><span class="text-2xl">🐥</span><span class="text-[10px] font-medium uppercase tracking-wide opacity-90">Birds Alive</span></div>
           <p class="text-3xl font-bold mt-2 ctrl-readout">{{ data.totalBirdsAlive | number }}</p>
         </div>
-        <div class="rounded-2xl shadow-sm p-4 text-white bg-gradient-to-br from-amber-500 to-amber-600">
+        <div class="kpi-tile rounded-2xl shadow-sm p-4 text-white bg-gradient-to-br from-amber-500 to-amber-600">
           <div class="flex items-center justify-between"><span class="text-2xl">🥚</span><span class="text-[10px] font-medium uppercase tracking-wide opacity-90">Total Arrived</span></div>
           <p class="text-3xl font-bold mt-2 ctrl-readout">{{ data.totalChicksArrived | number }}</p>
         </div>
-        <div class="rounded-2xl shadow-sm p-4 text-white bg-gradient-to-br from-rose-500 to-red-600">
+        <div class="kpi-tile rounded-2xl shadow-sm p-4 text-white bg-gradient-to-br from-rose-500 to-red-600">
           <div class="flex items-center justify-between"><span class="text-2xl">☠️</span><span class="text-[10px] font-medium uppercase tracking-wide opacity-90">Mortality</span></div>
           <p class="text-3xl font-bold mt-2 ctrl-readout">{{ data.totalMortality | number }}</p>
         </div>

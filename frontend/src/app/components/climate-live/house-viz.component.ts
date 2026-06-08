@@ -35,7 +35,7 @@ import { ApiService } from '../../services/api.service';
       </div>
 
       <!-- ============ ABIS NL-X16 SCREEN REPLICA ============ -->
-      <div *ngIf="selectedHouse" class="rounded-xl overflow-hidden shadow-2xl border border-cyan-900/40">
+      <div *ngIf="selectedHouse" class="rounded-xl overflow-hidden border border-cyan-900/40 abis-glow">
         <svg viewBox="0 0 820 490" class="w-full block" font-family="JetBrains Mono, monospace">
           <defs>
             <linearGradient id="abisbg" x1="0" y1="0" x2="0" y2="1">
@@ -46,7 +46,7 @@ import { ApiService } from '../../services/api.service';
 
           <!-- Top status bar -->
           <text x="22" y="40" font-size="22">🏠</text>
-          <text *ngIf="alarm" x="320" y="34" fill="#f87171" font-size="15" text-anchor="middle" class="ctrl-readout">{{ alarm }}</text>
+          <text *ngIf="alarm" x="320" y="34" fill="#f87171" font-size="15" text-anchor="middle" class="ctrl-readout abis-blink">{{ alarm }}</text>
           <g (click)="alarmAck = true" style="cursor:pointer">
             <rect x="590" y="20" width="96" height="22" rx="3" fill="#0b1c3f" stroke="#67e8f9"/>
             <text x="638" y="35" fill="#a5f3fc" font-size="11" text-anchor="middle">Alarm Reset</text>

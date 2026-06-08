@@ -57,6 +57,12 @@
     border-radius: 1rem;
     box-shadow: 0 6px 20px -10px rgba(2, 8, 23, 0.45);
     overflow: hidden;
+    transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
+    animation: ctrlrise .3s ease both;
+  }
+  .ctrl-card:hover {
+    box-shadow: 0 16px 34px -14px rgba(2, 8, 23, 0.55);
+    border-color: rgba(34, 211, 238, 0.35);
   }
   .ctrl-card::before {
     content: "";
@@ -166,11 +172,61 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Hide scrollbar but keep functionality */
-.overflow-y-auto::-webkit-scrollbar {
-  width: 4px;
+/* =========================================================
+   UI polish — applies app-wide via the design system
+   ========================================================= */
+
+/* Entrance motion for cards & controller panels */
+@keyframes ctrlrise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.ctrl-panel { animation: ctrlrise .3s ease both; }
+
+/* Buttons: smooth + clear keyboard focus */
+.ctrl-btn, .ctrl-btn-ghost { transition: transform .06s ease, filter .15s ease, background .15s ease, box-shadow .15s ease; }
+.ctrl-btn:focus-visible, .ctrl-btn-ghost:focus-visible {
+  outline: none; box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.45);
 }
-.overflow-y-auto::-webkit-scrollbar-thumb {
-  background: rgba(0,0,0,0.2);
-  border-radius: 2px;
+
+/* Inputs / selects / textareas: consistent, with an accent focus ring */
+input, select, textarea {
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: #22d3ee !important;
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.22);
+}
+
+/* Links & interactive icons get a gentle transition by default */
+a, button { transition: color .15s ease, background-color .15s ease, opacity .15s ease; }
+
+/* Modal backdrops: soften with a blur (modals use .fixed.inset-0 with a dim bg) */
+.fixed.inset-0 { backdrop-filter: blur(2px); }
+
+/* Themed scrollbars (slim, adapt to mode) */
+* { scrollbar-width: thin; scrollbar-color: rgba(34,211,238,0.35) transparent; }
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-thumb { background: rgba(34,211,238,0.30); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(34,211,238,0.55); }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* Data tables — zebra rows, hover, cleaner header */
+.ctrl-shell table tbody tr { transition: background .12s ease; }
+.ctrl-shell table tbody tr:nth-child(even) { background: rgba(2,8,23,0.025); }
+.ctrl-shell table tbody tr:hover { background: rgba(34,211,238,0.08); }
+.ctrl-shell table thead th { background: #eef2f7; }
+
+/* KPI tiles — depth, glossy highlight, hover lift */
+.kpi-tile { position: relative; overflow: hidden; transition: transform .2s ease, box-shadow .2s ease; }
+.kpi-tile::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 82% -25%, rgba(255,255,255,0.28), transparent 60%); pointer-events: none; }
+.kpi-tile:hover { transform: translateY(-3px); box-shadow: 0 18px 32px -12px rgba(2,8,23,0.5); }
+
+/* ABIS screen accents */
+.abis-glow { box-shadow: 0 0 44px -12px rgba(34,211,238,0.40), 0 10px 30px -10px rgba(0,0,0,0.6); }
+@keyframes abisblink { 0%,100% { opacity: 1; } 50% { opacity: 0.25; } }
+.abis-blink { animation: abisblink 1.1s ease-in-out infinite; }
+
+/* Respect reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .ctrl-card, .ctrl-panel, .abis-blink { animation: none; }
+  html { scroll-behavior: auto; }
 }

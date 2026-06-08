@@ -91,9 +91,9 @@ import { ApiService } from '../../services/api.service';
   `,
   styles: [`
     .ctrl-navlabel { font-family: var(--ctrl-mono); font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(34,211,238,0.55); padding: 0.6rem 0.75rem 0.25rem; }
-    .ctrl-navlink { display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0.7rem; border-radius: 0.5rem; font-size: 0.82rem; color: #cbd5e1; border-left: 2px solid transparent; transition: background .15s ease, color .15s ease; }
-    .ctrl-navlink:hover { background: rgba(255,255,255,0.05); color: #fff; }
-    .ctrl-navactive { background: rgba(34,211,238,0.14) !important; color: #67e8f9 !important; border-left-color: var(--ctrl-cyan) !important; }
+    .ctrl-navlink { display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0.7rem; border-radius: 0.5rem; font-size: 0.82rem; color: #cbd5e1; border-left: 2px solid transparent; transition: background .15s ease, color .15s ease, transform .15s ease; }
+    .ctrl-navlink:hover { background: rgba(255,255,255,0.06); color: #fff; transform: translateX(2px); }
+    .ctrl-navactive { background: linear-gradient(90deg, rgba(34,211,238,0.18), rgba(34,211,238,0.04)) !important; color: #67e8f9 !important; border-left-color: var(--ctrl-cyan) !important; box-shadow: inset 0 0 18px -8px rgba(34,211,238,0.5); }
   `]
 })
 export class LayoutComponent implements OnInit {
