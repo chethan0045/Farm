@@ -39,6 +39,9 @@ import { ApiService } from '../../services/api.service';
           <a routerLink="/ai-insights" routerLinkActive="ctrl-navactive" (click)="sidebarOpen=false" class="ctrl-navlink">
             <span class="ctrl-led ctrl-led-off shrink-0"></span><span>🧠</span> AI Insights
           </a>
+          <a routerLink="/analytics" routerLinkActive="ctrl-navactive" (click)="sidebarOpen=false" class="ctrl-navlink">
+            <span class="ctrl-led ctrl-led-off shrink-0"></span><span>📈</span> Analytics
+          </a>
           <a routerLink="/alerts" routerLinkActive="ctrl-navactive" (click)="sidebarOpen=false" class="ctrl-navlink">
             <span class="ctrl-led shrink-0" [class.ctrl-led-alarm]="unreadAlerts > 0" [class.ctrl-led-off]="unreadAlerts === 0"></span><span>🔔</span> Alerts
             <span *ngIf="unreadAlerts > 0" class="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold ctrl-readout">{{ unreadAlerts }}</span>

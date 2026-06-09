@@ -3,12 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ApiService } from '../../services/api.service';
-import { TrendChartComponent } from '../shared/trend-chart.component';
 
 @Component({
   selector: 'app-iot-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, TrendChartComponent],
+  imports: [CommonModule, FormsModule, RouterLink],
   template: `
     <div class="space-y-6">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
@@ -94,12 +93,7 @@ import { TrendChartComponent } from '../shared/trend-chart.component';
             <option value="5min">5 min avg</option>
             <option value="hourly">Hourly avg</option>
           </select>
-        </div>
-        <!-- Trend charts -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-          <app-trend-chart [data]="chartTemp" label="Temperature" unit="°C" color="#fb923c" [dp]="1"></app-trend-chart>
-          <app-trend-chart [data]="chartHum" label="Humidity" unit="%" color="#38bdf8" [dp]="0"></app-trend-chart>
-          <app-trend-chart [data]="chartNh3" label="Ammonia" unit="ppm" color="#a3e635" [dp]="0"></app-trend-chart>
+          <a routerLink="/analytics" class="text-xs text-emerald-600 hover:underline font-medium">📈 View trend charts →</a>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
@@ -157,9 +151,6 @@ export class IotDashboardComponent implements OnInit, OnDestroy {
   selectedHouse = '';
   historyResolution = 'hourly';
   refreshInterval = 30;
-  chartTemp: number[] = [];
-  chartHum: number[] = [];
-  chartNh3: number[] = [];
   private timer: any;
 
   constructor(private api: ApiService, private cdr: ChangeDetectorRef) {}
@@ -187,15 +178,7 @@ export class IotDashboardComponent implements OnInit, OnDestroy {
   loadHistory() {
     if (!this.selectedHouse) return;
     this.api.getSensorHistory(this.selectedHouse, { resolution: this.historyResolution }).subscribe({
-      next: (data) => {
-        this.historyData = data;
-        // history is newest-first; reverse for left-to-right time on the charts
-        const chrono = [...data].reverse();
-        this.chartTemp = chrono.map(d => d.temperature).filter((v: any) => v != null);
-        this.chartHum = chrono.map(d => d.humidity).filter((v: any) => v != null);
-        this.chartNh3 = chrono.map(d => d.ammoniaPPM).filter((v: any) => v != null);
-        this.cdr.detectChanges();
-      },
+      next: (data) => { this.historyData = data; this.cdr.detectChanges(); },
       error: () => {}
     });
   }
