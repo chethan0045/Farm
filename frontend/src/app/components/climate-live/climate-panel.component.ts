@@ -23,7 +23,10 @@ import { ApiService } from '../../services/api.service';
             House {{ h.houseNumber }}
           </button>
         </div>
-        <button (click)="loadAll()" class="text-xs text-gray-400 hover:text-gray-600">↻ refresh</button>
+        <div class="flex items-center gap-3">
+          <button *ngIf="isPwa && selectedHouse" (click)="enterFullscreen()" class="text-xs text-gray-400 hover:text-gray-600">⛶ full screen</button>
+          <button (click)="loadAll()" class="text-xs text-gray-400 hover:text-gray-600">↻ refresh</button>
+        </div>
       </div>
 
       <!-- Empty state -->
@@ -35,7 +38,10 @@ import { ApiService } from '../../services/api.service';
       </div>
 
       <!-- ================= CONTROLLER SCREEN REPLICA ================= -->
-      <div *ngIf="selectedHouse" class="mx-auto max-w-4xl rounded-[28px] p-3 bg-gradient-to-b from-gray-200 to-gray-400 shadow-2xl">
+      <div *ngIf="selectedHouse" [class.fs-overlay]="fullscreen">
+        <div [class.fs-stage]="fullscreen">
+          <button *ngIf="fullscreen" (click)="exitFullscreen()" class="fs-back">‹ Back</button>
+          <div class="mx-auto max-w-4xl rounded-[28px] p-3 bg-gradient-to-b from-gray-200 to-gray-400 shadow-2xl" [class.fs-bezel]="fullscreen">
         <div class="rounded-[20px] overflow-hidden border-4 border-gray-700 bg-[#06122b] text-white font-mono select-none">
 
           <!-- Title / status bar -->
@@ -47,7 +53,10 @@ import { ApiService } from '../../services/api.service';
             <span class="text-[11px] font-semibold tracking-wide" [ngClass]="isOnline ? 'text-emerald-400' : 'text-red-400'">
               {{ isOnline ? '● RUNNING' : '● OFFLINE' }} — HOUSE {{ selectedHouse }}
             </span>
-            <span class="text-[11px] text-amber-300 tabular-nums">{{ clock }}</span>
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] text-amber-300 tabular-nums">{{ clock }}</span>
+              <button *ngIf="isPwa && !fullscreen" (click)="enterFullscreen()" title="Full screen" class="text-cyan-300 hover:text-cyan-100 text-sm leading-none px-1">⛶</button>
+            </div>
           </div>
 
           <!-- Main 3-zone area -->
@@ -94,6 +103,8 @@ import { ApiService } from '../../services/api.service';
             <div class="bg-[#08183a] px-3 py-2"><p class="text-[9px] text-cyan-400 uppercase">Mortality</p><p class="text-sm font-bold tabular-nums">{{ flock.mortality }}</p></div>
           </div>
         </div>
+          </div>
+        </div>
       </div>
 
       <p *ngIf="selectedHouse && reading?.timestamp" class="text-center text-[11px] text-gray-400">
@@ -103,10 +114,44 @@ import { ApiService } from '../../services/api.service';
         Waiting for first reading from House {{ selectedHouse }}…
       </p>
     </div>
-  `
+  `,
+  styles: [`
+    /* Fullscreen mode (installed PWA only): dark stage covering the app */
+    .fs-overlay {
+      position: fixed; inset: 0; z-index: 100; margin: 0 !important;
+      background: #000;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .fs-stage {
+      position: relative; width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      padding: max(1.25rem, env(safe-area-inset-top), env(safe-area-inset-bottom), env(safe-area-inset-left), env(safe-area-inset-right));
+    }
+    /* Portrait phones: rotate the stage so the controller shows in landscape */
+    @media (orientation: portrait) {
+      .fs-stage {
+        width: 100dvh; height: 100dvw; flex: none;
+        transform: rotate(90deg);
+        transform-origin: center;
+      }
+    }
+    .fs-bezel { width: 100%; max-width: 64rem; }
+    .fs-back {
+      position: absolute; top: 0.9rem; left: 0.9rem; z-index: 10;
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      background: rgba(15, 23, 42, 0.78); color: #e2e8f0;
+      border: 1px solid rgba(148, 163, 184, 0.35); border-radius: 999px;
+      padding: 0.5rem 1rem; font-size: 0.85rem; font-weight: 600;
+      backdrop-filter: blur(4px);
+    }
+    .fs-back:active { background: rgba(30, 41, 59, 0.9); }
+  `]
 })
 export class ClimatePanelComponent implements OnInit, OnDestroy {
   @Input() refreshInterval = 15;
+  /* Fullscreen is only offered in the installed web app, not the browser */
+  isPwa = window.matchMedia?.('(display-mode: standalone)').matches || (navigator as any).standalone === true;
+  fullscreen = false;
   houses: any[] = [];
   selectedHouse = '';
   reading: any = null;
@@ -131,7 +176,30 @@ export class ClimatePanelComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     if (this.dataTimer) clearInterval(this.dataTimer);
     if (this.clockTimer) clearInterval(this.clockTimer);
+    if (this.fullscreen) this.exitFullscreen(true);
   }
+
+  enterFullscreen() {
+    if (this.fullscreen) return;
+    this.fullscreen = true;
+    // Push a history entry so the Android back button / iOS back-swipe
+    // closes fullscreen instead of leaving the page
+    history.pushState({ climateFullscreen: true }, '');
+    window.addEventListener('popstate', this.onPopState);
+    try { (document.documentElement as any).requestFullscreen?.()?.catch?.(() => {}); } catch {}
+    try { (screen.orientation as any)?.lock?.('landscape')?.catch?.(() => {}); } catch {}
+  }
+
+  exitFullscreen(fromNav = false) {
+    if (!this.fullscreen) return;
+    this.fullscreen = false;
+    window.removeEventListener('popstate', this.onPopState);
+    try { (screen.orientation as any)?.unlock?.(); } catch {}
+    try { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); } catch {}
+    if (!fromNav) history.back(); // consume the entry we pushed
+  }
+
+  private onPopState = () => { this.exitFullscreen(true); this.cdr.detectChanges(); };
 
   tickClock() {
     const d = new Date();
