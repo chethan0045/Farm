@@ -1,7 +1,7 @@
 /* KVS Farm PWA service worker — offline shell + safe caching.
  * Navigation = network-first (always fresh index online, cached fallback offline).
  * API = never cached. Static assets = cache-first with background update. */
-const CACHE = 'kvs-farm-v1';
+const CACHE = 'kvs-farm-v2';
 const SHELL = ['/', '/index.html', '/logo.png', '/manifest.webmanifest'];
 
 self.addEventListener('install', (e) => {

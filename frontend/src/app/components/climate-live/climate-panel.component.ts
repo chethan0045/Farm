@@ -118,21 +118,29 @@ import { ApiService } from '../../services/api.service';
   styles: [`
     /* Fullscreen mode (installed PWA only): dark stage covering the app */
     .fs-overlay {
-      position: fixed; inset: 0; z-index: 100; margin: 0 !important;
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 100; margin: 0 !important;
       background: #000;
-      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+      overscroll-behavior: contain;
     }
     .fs-stage {
-      position: relative; width: 100%; height: 100%;
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
       display: flex; align-items: center; justify-content: center;
       padding: max(1.25rem, env(safe-area-inset-top), env(safe-area-inset-bottom), env(safe-area-inset-left), env(safe-area-inset-right));
     }
-    /* Portrait phones: rotate the stage so the controller shows in landscape */
+    /* Portrait phones: rotate the stage about the viewport center so the
+       controller shows in landscape. translate+rotate from 50%/50% is the
+       pattern iOS Safari handles reliably (flex-centering an oversized
+       rotated child is not). vh/vw fallback for older iOS without dvh. */
     @media (orientation: portrait) {
       .fs-stage {
-        width: 100dvh; height: 100dvw; flex: none;
-        transform: rotate(90deg);
-        transform-origin: center;
+        top: 50%; left: 50%;
+        width: 100vh; height: 100vw;
+        transform: translate(-50%, -50%) rotate(90deg);
+      }
+      @supports (width: 100dvh) {
+        .fs-stage { width: 100dvh; height: 100dvw; }
       }
     }
     .fs-bezel { width: 100%; max-width: 64rem; }
@@ -184,22 +192,31 @@ export class ClimatePanelComponent implements OnInit, OnDestroy {
     this.fullscreen = true;
     // Push a history entry so the Android back button / iOS back-swipe
     // closes fullscreen instead of leaving the page
-    history.pushState({ climateFullscreen: true }, '');
+    try { history.pushState({ climateFullscreen: true }, ''); } catch {}
     window.addEventListener('popstate', this.onPopState);
-    try { (document.documentElement as any).requestFullscreen?.()?.catch?.(() => {}); } catch {}
-    try { (screen.orientation as any)?.lock?.('landscape')?.catch?.(() => {}); } catch {}
+    document.body.style.overflow = 'hidden';
+    // Native fullscreen + orientation lock help on Android; iPhone has
+    // neither API, there the CSS overlay + rotation does all the work
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    if (!isIOS) {
+      try { (document.documentElement as any).requestFullscreen?.()?.catch?.(() => {}); } catch {}
+      try { (screen.orientation as any)?.lock?.('landscape')?.catch?.(() => {}); } catch {}
+    }
+    this.cdr.detectChanges();
   }
 
   exitFullscreen(fromNav = false) {
     if (!this.fullscreen) return;
     this.fullscreen = false;
     window.removeEventListener('popstate', this.onPopState);
+    document.body.style.overflow = '';
     try { (screen.orientation as any)?.unlock?.(); } catch {}
     try { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); } catch {}
-    if (!fromNav) history.back(); // consume the entry we pushed
+    if (!fromNav) { try { history.back(); } catch {} } // consume the entry we pushed
+    this.cdr.detectChanges();
   }
 
-  private onPopState = () => { this.exitFullscreen(true); this.cdr.detectChanges(); };
+  private onPopState = () => { this.exitFullscreen(true); };
 
   tickClock() {
     const d = new Date();
