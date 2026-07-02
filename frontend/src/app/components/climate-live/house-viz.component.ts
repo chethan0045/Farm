@@ -38,15 +38,15 @@ import { ApiService } from '../../services/api.service';
 
       <!-- ============ HERO CLIMATE CARD ============ -->
       <div *ngIf="selectedHouse" class="hv-hero abis-glow">
-        <!-- Header -->
+        <!-- Header (mobile keeps only status pill, weather temp, alarm reset) -->
         <div class="flex flex-wrap items-center gap-3 px-4 pt-4 md:px-5">
-          <div class="w-11 h-11 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center text-2xl shrink-0">🏠</div>
+          <div class="w-11 h-11 rounded-xl bg-white/10 border border-white/10 hidden sm:flex items-center justify-center text-2xl shrink-0">🏠</div>
           <div class="mr-auto">
             <div class="flex items-center gap-2">
-              <h3 class="text-lg font-bold text-white font-mono leading-none">House {{ selectedHouse }}</h3>
+              <h3 class="hidden sm:block text-lg font-bold text-white font-mono leading-none">House {{ selectedHouse }}</h3>
               <span class="hv-pill" [ngClass]="online(currentHouse) ? 'hv-pill-live' : 'hv-pill-off'">● {{ online(currentHouse) ? 'LIVE' : 'OFFLINE' }}</span>
             </div>
-            <p class="text-[11px] text-slate-400 mt-1">3D Climate Overview</p>
+            <p class="hidden sm:block text-[11px] text-slate-400 mt-1">3D Climate Overview</p>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-3xl leading-none">{{ weather?.icon || '⛅' }}</span>
@@ -55,10 +55,8 @@ import { ApiService } from '../../services/api.service';
               <p class="text-[10px] text-slate-400">{{ weather?.desc || 'Outdoor' }}</p>
             </div>
           </div>
-          <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
-            <button (click)="alarmAck = true" class="hv-alarm-btn">🔔 Alarm Reset</button>
-            <span class="hv-date">📅 {{ today }}</span>
-          </div>
+          <button (click)="alarmAck = true" class="hv-alarm-btn">🔔 Alarm Reset</button>
+          <span class="hv-date hidden sm:inline-flex">📅 {{ today }}</span>
         </div>
 
         <!-- Alarm banner -->
