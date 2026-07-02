@@ -90,6 +90,28 @@ import { ApiService } from '../../services/api.service';
 
       <!-- Mobile overlay -->
       <div *ngIf="sidebarOpen" (click)="sidebarOpen=false" class="lg:hidden fixed inset-0 bg-black/60 z-20"></div>
+
+      <!-- Mobile bottom tab bar -->
+      <nav class="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#06122b]/95 border-t border-cyan-900/40 backdrop-blur safe-bottom">
+        <div class="grid grid-cols-5">
+          <a routerLink="/dashboard" routerLinkActive="tab-active" (click)="sidebarOpen=false" class="tab-item">
+            <span class="tab-ico">📊</span><span>Dashboard</span>
+          </a>
+          <a routerLink="/climate-live" routerLinkActive="tab-active" (click)="sidebarOpen=false" class="tab-item">
+            <span class="tab-ico">🌡️</span><span>Climate</span>
+          </a>
+          <a routerLink="/iot-dashboard" routerLinkActive="tab-active" (click)="sidebarOpen=false" class="tab-item">
+            <span class="tab-ico">📡</span><span>IoT</span>
+          </a>
+          <a routerLink="/alerts" routerLinkActive="tab-active" (click)="sidebarOpen=false" class="tab-item relative">
+            <span class="tab-ico">🔔</span><span>Alerts</span>
+            <span *ngIf="unreadAlerts > 0" class="absolute top-1 right-[22%] bg-red-500 text-white text-[8px] min-w-4 h-4 px-0.5 rounded-full flex items-center justify-center font-bold">{{ unreadAlerts }}</span>
+          </a>
+          <button (click)="sidebarOpen = true" class="tab-item">
+            <span class="tab-ico">⋯</span><span>More</span>
+          </button>
+        </div>
+      </nav>
     </div>
   `,
   styles: [`
@@ -97,6 +119,18 @@ import { ApiService } from '../../services/api.service';
     .ctrl-navlink { display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0.7rem; border-radius: 0.5rem; font-size: 0.82rem; color: #cbd5e1; border-left: 2px solid transparent; transition: background .15s ease, color .15s ease, transform .15s ease; }
     .ctrl-navlink:hover { background: rgba(255,255,255,0.06); color: #fff; transform: translateX(2px); }
     .ctrl-navactive { background: linear-gradient(90deg, rgba(34,211,238,0.18), rgba(34,211,238,0.04)) !important; color: #67e8f9 !important; border-left-color: var(--ctrl-cyan) !important; box-shadow: inset 0 0 18px -8px rgba(34,211,238,0.5); }
+    .tab-item {
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      padding: 0.45rem 0 0.4rem; width: 100%;
+      font-family: var(--ctrl-mono); font-size: 10px; color: #94a3b8;
+    }
+    .tab-ico {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 2.1rem; height: 1.5rem; border-radius: 0.55rem; font-size: 1rem;
+      transition: background .15s ease;
+    }
+    .tab-active { color: #34d399; }
+    .tab-active .tab-ico { background: rgba(16, 185, 129, 0.18); }
   `]
 })
 export class LayoutComponent implements OnInit {

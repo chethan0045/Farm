@@ -24,7 +24,10 @@ import { HouseVizComponent } from '../climate-live/house-viz.component';
 
       <!-- LIVE HOUSE CLIMATE (controller replica, loads independently) -->
       <section class="space-y-2">
-        <h3 class="text-sm ctrl-title uppercase tracking-wide flex items-center gap-2"><span>🏠</span> Live House — 3D Climate View</h3>
+        <h3 class="text-sm ctrl-title uppercase tracking-wide flex items-center gap-2">
+          <span class="inline-flex items-center gap-1 bg-red-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-md font-mono tracking-widest">◉ LIVE</span>
+          Live House — 3D Climate View
+        </h3>
         <app-house-viz [refreshInterval]="15"></app-house-viz>
       </section>
 

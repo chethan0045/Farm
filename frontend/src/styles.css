@@ -288,6 +288,10 @@ a, button { transition: color .15s ease, background-color .15s ease, opacity .15
 .safe-top-bar { padding-top: calc(0.75rem + env(safe-area-inset-top)); }
 .safe-bottom-bar { padding-bottom: calc(0.75rem + env(safe-area-inset-bottom)); }
 .safe-main { padding-bottom: calc(1.5rem + env(safe-area-inset-bottom)); }
+/* Mobile: clear the fixed bottom tab bar */
+@media (max-width: 1023px) {
+  .safe-main { padding-bottom: calc(5.5rem + env(safe-area-inset-bottom)); }
+}
 
 /* Avoid rubber-band scroll chaining behind the app shell */
 html, body { overscroll-behavior-y: contain; }
