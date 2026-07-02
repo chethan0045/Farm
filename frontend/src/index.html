@@ -19,7 +19,12 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <script>(function(){var t=localStorage.getItem('theme')||'dark';document.documentElement.classList.add('theme-'+t);})();</script>
+  <script>(function(){
+    var t = localStorage.getItem('theme') || 'dark';
+    document.documentElement.classList.add('theme-' + t);
+    var m = document.querySelector('meta[name="theme-color"]');
+    if (m) m.setAttribute('content', t === 'light' ? '#eef2f7' : '#06122b');
+  })();</script>
   <app-root></app-root>
   <script>
     if ('serviceWorker' in navigator) {

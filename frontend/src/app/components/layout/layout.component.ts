@@ -16,7 +16,7 @@ import { ApiService } from '../../services/api.service';
         [class.lg:translate-x-0]="true">
 
         <!-- Brand -->
-        <div class="p-4 border-b border-cyan-900/40 flex items-center gap-3 bg-gradient-to-r from-[#0a1f4d] to-[#06122b]">
+        <div class="p-4 safe-top border-b border-cyan-900/40 flex items-center gap-3 bg-gradient-to-r from-[#0a1f4d] to-[#06122b]">
           <img src="logo.png" alt="KVS" class="w-11 h-11 rounded-lg bg-white p-0.5">
           <div class="font-mono leading-tight">
             <h1 class="text-sm font-bold text-cyan-200 tracking-wide">KVS · ABIS</h1>
@@ -56,7 +56,7 @@ import { ApiService } from '../../services/api.service';
           </a>
         </nav>
 
-        <div class="p-3 border-t border-cyan-900/40 bg-[#081530] flex items-center justify-between">
+        <div class="p-3 safe-bottom-bar border-t border-cyan-900/40 bg-[#081530] flex items-center justify-between">
           <div>
             <p class="text-sm text-cyan-200 font-mono">{{ (auth.currentUser$ | async)?.username }}</p>
             <button (click)="logout()" class="text-xs text-slate-400 hover:text-cyan-300 mt-1 font-mono">⏻ Logout</button>
@@ -70,7 +70,7 @@ import { ApiService } from '../../services/api.service';
 
       <!-- Main content -->
       <div class="flex-1 lg:ml-64">
-        <header class="lg:hidden bg-[#06122b] border-b border-cyan-900/40 p-3 flex items-center justify-between sticky top-0 z-20">
+        <header class="lg:hidden bg-[#06122b] border-b border-cyan-900/40 p-3 safe-top-bar flex items-center justify-between sticky top-0 z-20">
           <button (click)="sidebarOpen = !sidebarOpen" class="text-cyan-300">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
           </button>
@@ -83,7 +83,7 @@ import { ApiService } from '../../services/api.service';
             <span *ngIf="unreadAlerts > 0" class="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center font-bold">{{ unreadAlerts }}</span>
           </a>
         </header>
-        <main class="p-4 md:p-6">
+        <main class="p-4 md:p-6 safe-main">
           <router-outlet></router-outlet>
         </main>
       </div>
@@ -144,5 +144,7 @@ export class LayoutComponent implements OnInit {
     const el = document.documentElement;
     el.classList.remove('theme-dark', 'theme-light');
     el.classList.add('theme-' + this.theme);
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', this.theme === 'light' ? '#eef2f7' : '#06122b');
   }
 }
