@@ -55,8 +55,10 @@ import { ApiService } from '../../services/api.service';
               <p class="text-[10px] text-slate-400">{{ weather?.desc || 'Outdoor' }}</p>
             </div>
           </div>
-          <button (click)="alarmAck = true" class="hv-alarm-btn">🔔 Alarm Reset</button>
-          <span class="hv-date">📅 {{ today }}</span>
+          <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
+            <button (click)="alarmAck = true" class="hv-alarm-btn">🔔 Alarm Reset</button>
+            <span class="hv-date">📅 {{ today }}</span>
+          </div>
         </div>
 
         <!-- Alarm banner -->
@@ -93,6 +95,10 @@ import { ApiService } from '../../services/api.service';
               <!-- Humidity drop -->
               <text [attr.x]="dropPos.x" [attr.y]="dropPos.y" font-size="16" text-anchor="middle">💧</text>
               <text [attr.x]="dropPos.x + 16" [attr.y]="dropPos.y" fill="#a5f3fc" font-size="13" class="ctrl-readout">{{ v('humidity',0) }}</text>
+
+              <!-- Big air temperature readout (classic controller position) -->
+              <text x="612" y="452" fill="#f59e0b" font-size="42" text-anchor="middle" class="ctrl-readout" style="filter:drop-shadow(0 0 10px rgba(245,158,11,.6))">{{ v('temperature',1) }}</text>
+              <text x="655" y="452" fill="#fbbf24" font-size="14" class="ctrl-readout">°C</text>
             </svg>
             <div class="flex gap-1.5 pb-2">
               <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
@@ -300,7 +306,11 @@ export class HouseVizComponent implements OnInit, OnDestroy {
     return this.weather ? this.weather.temp.toFixed(1) : '--';
   }
 
-  tickDate() { const d = new Date(); this.today = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`; }
+  tickDate() {
+    const d = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    this.today = `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+  }
 
   buildGeometry() {
     const { L, W, H, PEAK } = this;

@@ -103,9 +103,8 @@ import { ApiService } from '../../services/api.service';
           <a routerLink="/iot-dashboard" routerLinkActive="tab-active" (click)="sidebarOpen=false" class="tab-item">
             <span class="tab-ico">📡</span><span>IoT</span>
           </a>
-          <a routerLink="/alerts" routerLinkActive="tab-active" (click)="sidebarOpen=false" class="tab-item relative">
-            <span class="tab-ico">🔔</span><span>Alerts</span>
-            <span *ngIf="unreadAlerts > 0" class="absolute top-1 right-[22%] bg-red-500 text-white text-[8px] min-w-4 h-4 px-0.5 rounded-full flex items-center justify-center font-bold">{{ unreadAlerts }}</span>
+          <a routerLink="/inventory" routerLinkActive="tab-active" (click)="sidebarOpen=false" class="tab-item">
+            <span class="tab-ico">📦</span><span>Inventory</span>
           </a>
           <button (click)="sidebarOpen = true" class="tab-item">
             <span class="tab-ico">⋯</span><span>More</span>
