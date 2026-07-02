@@ -49,10 +49,10 @@ import { ApiService } from '../../services/api.service';
             <p class="text-[11px] text-slate-400 mt-1">3D Climate Overview</p>
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-3xl leading-none">⛅</span>
+            <span class="text-3xl leading-none">{{ weather?.icon || '⛅' }}</span>
             <div>
-              <p class="text-sm font-bold text-white font-mono leading-tight">{{ v('outdoorTemp',0) }}°C</p>
-              <p class="text-[10px] text-slate-400">Outdoor</p>
+              <p class="text-sm font-bold text-white font-mono leading-tight">{{ outdoorT }}°C</p>
+              <p class="text-[10px] text-slate-400">{{ weather?.desc || 'Outdoor' }}</p>
             </div>
           </div>
           <button (click)="alarmAck = true" class="hv-alarm-btn">🔔 Alarm Reset</button>
@@ -226,9 +226,14 @@ export class HouseVizComponent implements OnInit, OnDestroy {
   rightRows: any[] = [];
   statCards: any[] = [];
   sys = { devTotal: 0, devOnline: 0, alarms: 0, rules: 0 };
+  weather: { temp: number; desc: string; icon: string } | null = null;
   private history: any[] = [];
   private timer: any;
   private statusTimer: any;
+  private weatherTimer: any;
+  // Farm location: Sogenahalli, Karnataka
+  private readonly FARM_LAT = 13.4680234;
+  private readonly FARM_LON = 77.1270069;
 
   // iso geometry (screen polygons) + equipment (precomputed)
   floor = ''; backWall = ''; leftEnd = ''; rightEnd = ''; roof = ''; padFront = ''; padEnd = '';
@@ -251,12 +256,48 @@ export class HouseVizComponent implements OnInit, OnDestroy {
     this.buildStatCards();
     this.load();
     this.loadStatus();
+    this.loadWeather();
     this.timer = setInterval(() => { this.tickDate(); this.load(); }, this.refreshInterval * 1000);
     this.statusTimer = setInterval(() => this.loadStatus(), 60000);
+    this.weatherTimer = setInterval(() => this.loadWeather(), 600000);
   }
   ngOnDestroy() {
     if (this.timer) clearInterval(this.timer);
     if (this.statusTimer) clearInterval(this.statusTimer);
+    if (this.weatherTimer) clearInterval(this.weatherTimer);
+  }
+
+  /** Live outdoor weather for the farm (Open-Meteo, no API key) */
+  loadWeather() {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${this.FARM_LAT}&longitude=${this.FARM_LON}&current=temperature_2m,weather_code&timezone=auto`;
+    fetch(url)
+      .then(r => r.json())
+      .then(d => {
+        const c = d?.current;
+        if (!c || c.temperature_2m == null) return;
+        this.weather = { temp: c.temperature_2m, ...this.wmo(c.weather_code) };
+        this.buildRows();
+        this.cdr.detectChanges();
+      })
+      .catch(() => {});
+  }
+  private wmo(code: number): { desc: string; icon: string } {
+    if (code === 0) return { desc: 'Clear Sky', icon: '☀️' };
+    if (code <= 2) return { desc: 'Partly Cloudy', icon: '⛅' };
+    if (code === 3) return { desc: 'Overcast', icon: '☁️' };
+    if (code === 45 || code === 48) return { desc: 'Fog', icon: '🌫️' };
+    if (code <= 57) return { desc: 'Drizzle', icon: '🌦️' };
+    if (code <= 67) return { desc: 'Rain', icon: '🌧️' };
+    if (code <= 77) return { desc: 'Snow', icon: '🌨️' };
+    if (code <= 82) return { desc: 'Showers', icon: '🌧️' };
+    if (code >= 95) return { desc: 'Thunderstorm', icon: '⛈️' };
+    return { desc: 'Outdoor', icon: '⛅' };
+  }
+  /** Sensor's outdoor probe wins; live weather for the farm otherwise */
+  get outdoorT(): string {
+    const s = this.reading?.outdoorTemp;
+    if (s !== null && s !== undefined && !isNaN(s)) return Number(s).toFixed(1);
+    return this.weather ? this.weather.temp.toFixed(1) : '--';
   }
 
   tickDate() { const d = new Date(); this.today = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`; }
@@ -352,7 +393,7 @@ export class HouseVizComponent implements OnInit, OnDestroy {
       { icon: '⏱️', label: 'Run time',     value: '120',                          unit: 'min' },
     ];
     this.rightRows = [
-      { icon: '🌤️', label: 'Outdoor T',    value: this.v('outdoorTemp', 1),    unit: '°C' },
+      { icon: '🌤️', label: 'Outdoor T',    value: this.outdoorT,               unit: '°C' },
       { icon: '🌀', label: 'S. Press.',    value: this.v('staticPressure', 0), unit: 'Pa' },
       { icon: '🎯', label: 'Target S.P.',  value: '12',                        unit: 'Pa' },
       { icon: '♨️', label: 'Boiler T',     value: '--',                        unit: '°C' },
