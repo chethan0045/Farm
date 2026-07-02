@@ -157,8 +157,12 @@ import { ApiService } from '../../services/api.service';
 })
 export class ClimatePanelComponent implements OnInit, OnDestroy {
   @Input() refreshInterval = 15;
-  /* Fullscreen is only offered in the installed web app, not the browser */
-  isPwa = window.matchMedia?.('(display-mode: standalone)').matches || (navigator as any).standalone === true;
+  /* Fullscreen is offered in the installed web app and on mobile/touch
+     devices — hidden only on desktop browsers */
+  isPwa = window.matchMedia?.('(display-mode: standalone)').matches
+    || (navigator as any).standalone === true
+    || window.matchMedia?.('(pointer: coarse)').matches
+    || 'ontouchstart' in window;
   fullscreen = false;
   houses: any[] = [];
   selectedHouse = '';
