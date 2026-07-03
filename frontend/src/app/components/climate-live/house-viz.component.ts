@@ -98,11 +98,6 @@ import { ApiService } from '../../services/api.service';
               <text x="612" y="452" fill="#f59e0b" font-size="42" text-anchor="middle" class="ctrl-readout" style="filter:drop-shadow(0 0 10px rgba(245,158,11,.6))">{{ v('temperature',1) }}</text>
               <text x="655" y="452" fill="#fbbf24" font-size="14" class="ctrl-readout">°C</text>
             </svg>
-            <div class="flex gap-1.5 pb-2">
-              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-              <span class="w-2 h-2 rounded-full bg-slate-600"></span>
-              <span class="w-2 h-2 rounded-full bg-slate-600"></span>
-            </div>
           </div>
 
           <div class="col-span-6 md:col-span-3 space-y-1.5">
