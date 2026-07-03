@@ -1,0 +1,12 @@
+{
+  "apiUrl": "https://YOUR-APP.onrender.com",
+  "apiKey": "PASTE_DEVICE_API_KEY_FROM_DEVICES_PAGE",
+  "listenPort": 9000,
+  "slaveId": 1,
+  "functionCode": 3,
+  "blockStart": 0,
+  "blockCount": 40,
+  "pollSeconds": 30,
+  "discovery": true,
+  "map": []
+}

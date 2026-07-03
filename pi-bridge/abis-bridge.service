@@ -1,0 +1,15 @@
+[Unit]
+Description=ABIS NL-X16 to KVS Farm cloud bridge
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/abis-bridge
+ExecStart=/usr/bin/node /home/pi/abis-bridge/abis-bridge.js
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
