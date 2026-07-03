@@ -274,7 +274,7 @@ export class HouseVizComponent implements OnInit, OnDestroy {
   /** Live outdoor weather for the farm (Open-Meteo, no API key) */
   loadWeather() {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${this.FARM_LAT}&longitude=${this.FARM_LON}&current=temperature_2m,weather_code&timezone=auto`;
-    fetch(url)
+    fetch(url, { cache: 'no-store' })
       .then(r => r.json())
       .then(d => {
         const c = d?.current;

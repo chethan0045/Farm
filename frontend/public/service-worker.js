@@ -1,7 +1,7 @@
 /* KVS Farm PWA service worker — offline shell + safe caching.
  * Navigation = network-first (always fresh index online, cached fallback offline).
  * API = never cached. Static assets = cache-first with background update. */
-const CACHE = 'kvs-farm-v2';
+const CACHE = 'kvs-farm-v3';
 const SHELL = ['/', '/index.html', '/logo.png', '/manifest.webmanifest'];
 
 self.addEventListener('install', (e) => {
@@ -20,6 +20,9 @@ self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
+
+  // Never touch cross-origin requests (weather API, fonts, etc.) — network only
+  if (url.origin !== self.location.origin) return;
 
   // Never cache API traffic
   if (url.pathname.startsWith('/api/')) return;
