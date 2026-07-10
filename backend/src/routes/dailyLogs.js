@@ -7,29 +7,34 @@ const router = express.Router();
 router.use(authenticate);
 
 // Get logs (optionally filter by batch)
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
   try {
     const { batchId } = req.query;
     const filter = batchId ? { batch: batchId } : {};
-    const logs = await DailyLog.find(filter).populate('batch', 'batchNumber chicksArrived currentCount arrivalDate').sort({ date: -1 });
+    const limit = Math.min(parseInt(req.query.limit) || 200, 1000);
+    const logs = await DailyLog.find(filter)
+      .populate('batch', 'batchNumber chicksArrived currentCount arrivalDate')
+      .sort({ date: -1 })
+      .limit(limit)
+      .lean();
     res.json(logs);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
 // Get latest log for a batch
-router.get('/latest/:batchId', async (req, res) => {
+router.get('/latest/:batchId', async (req, res, next) => {
   try {
     const log = await DailyLog.findOne({ batch: req.params.batchId }).sort({ date: -1 }).populate('batch', 'batchNumber chicksArrived currentCount arrivalDate');
     res.json(log);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
 // Get analytics for a batch (FCR, avg feed/water per bird, growth trend)
-router.get('/analytics/:batchId', async (req, res) => {
+router.get('/analytics/:batchId', async (req, res, next) => {
   try {
     const batch = await Batch.findById(req.params.batchId);
     if (!batch) return res.status(404).json({ error: 'Batch not found' });
@@ -102,12 +107,12 @@ router.get('/analytics/:batchId', async (req, res) => {
       totalLogs: logs.length
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
 // Create daily log
-router.post('/', async (req, res) => {
+router.post('/', async (req, res, next) => {
   try {
     const batch = await Batch.findById(req.body.batch);
     if (!batch) return res.status(404).json({ error: 'Batch not found' });
@@ -131,12 +136,12 @@ router.post('/', async (req, res) => {
     if (err.code === 11000) {
       return res.status(409).json({ error: 'A log for this batch and date already exists' });
     }
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
 // Update daily log
-router.put('/:id', async (req, res) => {
+router.put('/:id', async (req, res, next) => {
   try {
     const existing = await DailyLog.findById(req.params.id);
     if (!existing) return res.status(404).json({ error: 'Log not found' });
@@ -147,15 +152,26 @@ router.put('/:id', async (req, res) => {
       await Batch.findByIdAndUpdate(existing.batch, { $inc: { currentCount: -mortalityDiff } });
     }
 
-    const log = await DailyLog.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true }).populate('batch', 'batchNumber chicksArrived currentCount arrivalDate');
+    // The owning batch can never change on update — the mortality adjustment
+    // above was applied to the original batch, so moving the log would corrupt
+    // both batches' bird counts. dayNumber is derived, not client-set.
+    const { batch, dayNumber, ...updateData } = req.body;
+    if (updateData.date) {
+      const owner = await Batch.findById(existing.batch).select('arrivalDate').lean();
+      if (owner) {
+        updateData.dayNumber = Math.floor((new Date(updateData.date) - new Date(owner.arrivalDate)) / (1000 * 60 * 60 * 24)) + 1;
+      }
+    }
+
+    const log = await DailyLog.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true }).populate('batch', 'batchNumber chicksArrived currentCount arrivalDate');
     res.json(log);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
 // Delete daily log
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', async (req, res, next) => {
   try {
     const log = await DailyLog.findById(req.params.id);
     if (!log) return res.status(404).json({ error: 'Log not found' });
@@ -168,7 +184,7 @@ router.delete('/:id', async (req, res) => {
     await log.deleteOne();
     res.json({ message: 'Log deleted successfully' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 

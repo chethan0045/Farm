@@ -15,8 +15,8 @@ import { ApiService } from '../../services/api.service';
 
       <!-- Tabs -->
       <div class="flex gap-1 mb-6 bg-gray-100 rounded-lg p-1 w-fit">
-        <button (click)="activeTab='vaccinations'" [class]="activeTab==='vaccinations' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:text-gray-800'" class="px-4 py-2 rounded-lg text-sm font-medium transition">Vaccinations</button>
-        <button (click)="activeTab='healthLogs'" [class]="activeTab==='healthLogs' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:text-gray-800'" class="px-4 py-2 rounded-lg text-sm font-medium transition">Health Logs</button>
+        <button (click)="activeTab='vaccinations'" [class]="activeTab==='vaccinations' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:text-gray-800'" class="px-4 py-2 rounded-lg text-sm font-medium transition">Vaccinations</button>
+        <button (click)="activeTab='healthLogs'" [class]="activeTab==='healthLogs' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:text-gray-800'" class="px-4 py-2 rounded-lg text-sm font-medium transition">Health Logs</button>
       </div>
 
       <!-- ==================== VACCINATIONS TAB ==================== -->
@@ -34,7 +34,7 @@ import { ApiService } from '../../services/api.service';
               <option value="missed">Missed</option>
             </select>
           </div>
-          <button (click)="openVacModal()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition text-sm font-medium">+ Add Vaccination</button>
+          <button (click)="openVacModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium">+ Add Vaccination</button>
         </div>
 
         <!-- Loading skeletons -->
@@ -63,7 +63,7 @@ import { ApiService } from '../../services/api.service';
           <div class="text-5xl mb-3">💉</div>
           <p class="text-gray-500 font-medium mb-1">No vaccinations recorded</p>
           <p class="text-gray-400 text-sm mb-5">Schedule your first vaccination to keep your flock protected.</p>
-          <button (click)="openVacModal()" class="bg-emerald-600 text-white px-5 py-2 rounded-lg hover:bg-emerald-700 transition text-sm font-medium">+ Add Vaccination</button>
+          <button (click)="openVacModal()" class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium">+ Add Vaccination</button>
         </div>
 
         <!-- Vaccination cards -->
@@ -122,7 +122,7 @@ import { ApiService } from '../../services/api.service';
               <option value="critical">Critical</option>
             </select>
           </div>
-          <button (click)="openHlModal()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition text-sm font-medium">+ Add Health Log</button>
+          <button (click)="openHlModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium">+ Add Health Log</button>
         </div>
 
         <!-- Loading skeletons -->
@@ -151,7 +151,7 @@ import { ApiService } from '../../services/api.service';
           <div class="text-5xl mb-3">🦠</div>
           <p class="text-gray-500 font-medium mb-1">No health logs recorded</p>
           <p class="text-gray-400 text-sm mb-5">Log diseases, treatments and observations to track flock health.</p>
-          <button (click)="openHlModal()" class="bg-emerald-600 text-white px-5 py-2 rounded-lg hover:bg-emerald-700 transition text-sm font-medium">+ Add Health Log</button>
+          <button (click)="openHlModal()" class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium">+ Add Health Log</button>
         </div>
 
         <!-- Health log cards -->
@@ -266,7 +266,7 @@ import { ApiService } from '../../services/api.service';
               </div>
             </div>
             <div class="flex gap-3 mt-6">
-              <button type="submit" class="flex-1 bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700 font-medium">Save</button>
+              <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium">Save</button>
               <button type="button" (click)="showVacModal=false" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 font-medium">Cancel</button>
             </div>
           </form>
@@ -354,7 +354,7 @@ import { ApiService } from '../../services/api.service';
               </div>
             </div>
             <div class="flex gap-3 mt-6">
-              <button type="submit" class="flex-1 bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700 font-medium">Save</button>
+              <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium">Save</button>
               <button type="button" (click)="showHlModal=false" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 font-medium">Cancel</button>
             </div>
           </form>

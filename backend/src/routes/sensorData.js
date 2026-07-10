@@ -8,7 +8,7 @@ const DeviceControl = require('../models/DeviceControl');
 const { processSensorData } = require('../services/sensorProcessor');
 
 // POST /api/sensor-data - ESP32 pushes sensor readings
-router.post('/', authenticateDevice, sensorRateLimit, async (req, res) => {
+router.post('/', authenticateDevice, sensorRateLimit, async (req, res, next) => {
   try {
     const device = req.device;
     const reading = req.body;
@@ -18,8 +18,9 @@ router.post('/', authenticateDevice, sensorRateLimit, async (req, res) => {
     // Check for pending command to piggyback in response
     let pendingCommand = null;
     const control = await DeviceControl.findOne({ device: device._id });
-    if (control && control.pendingCommand && control.pendingCommand.relay && !control.pendingCommand.acknowledged) {
+    if (control && DeviceControl.isCommandActive(control.pendingCommand)) {
       pendingCommand = {
+        commandId: control.pendingCommand.commandId,
         relay: control.pendingCommand.relay,
         action: control.pendingCommand.action,
         value: control.pendingCommand.value
@@ -32,12 +33,12 @@ router.post('/', authenticateDevice, sensorRateLimit, async (req, res) => {
       pendingCommand
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
 // POST /api/sensor-data/bulk - ESP32 sends buffered readings
-router.post('/bulk', authenticateDevice, sensorRateLimit, async (req, res) => {
+router.post('/bulk', authenticateDevice, sensorRateLimit, async (req, res, next) => {
   try {
     const device = req.device;
     const { readings } = req.body;
@@ -46,20 +47,31 @@ router.post('/bulk', authenticateDevice, sensorRateLimit, async (req, res) => {
       return res.status(400).json({ error: 'readings array is required' });
     }
 
+    // Buffered readings are historical: persist them all, but only let the
+    // newest fresh reading drive alerts/automation — reacting to hours-old
+    // conditions would fire relays and alerts for a state that has passed.
+    const FRESH_MS = 15 * 60 * 1000;
+    const capped = readings.slice(0, 100);
+    const freshest = capped.reduce((best, r) => {
+      const ts = r.timestamp ? new Date(r.timestamp).getTime() : 0;
+      return ts > best.ts ? { ts, reading: r } : best;
+    }, { ts: 0, reading: null });
+
     let processed = 0;
-    for (const reading of readings.slice(0, 100)) { // cap at 100
-      await processSensorData(device, reading);
+    for (const reading of capped) {
+      const isDrivingReading = reading === freshest.reading && (Date.now() - freshest.ts) < FRESH_MS;
+      await processSensorData(device, reading, { react: isDrivingReading });
       processed++;
     }
 
     res.json({ status: 'ok', processed, serverTime: new Date().toISOString() });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
 // GET /api/sensor-data/latest/:houseNumber - Latest reading per house
-router.get('/latest/:houseNumber', authenticate, async (req, res) => {
+router.get('/latest/:houseNumber', authenticate, async (req, res, next) => {
   try {
     const latest = await SensorData.findOne({ houseNumber: req.params.houseNumber })
       .sort({ timestamp: -1 })
@@ -76,12 +88,12 @@ router.get('/latest/:houseNumber', authenticate, async (req, res) => {
 
     res.json({ ...latest.toObject(), ammoniaLevel });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
 // GET /api/sensor-data/history/:houseNumber - Historical data with resolution
-router.get('/history/:houseNumber', authenticate, async (req, res) => {
+router.get('/history/:houseNumber', authenticate, async (req, res, next) => {
   try {
     const { houseNumber } = req.params;
     const { from, to, resolution = 'raw' } = req.query;
@@ -154,31 +166,26 @@ router.get('/history/:houseNumber', authenticate, async (req, res) => {
     const data = await SensorData.aggregate(pipeline);
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
 // GET /api/sensor-data/summary - All houses latest readings
-router.get('/summary', authenticate, async (req, res) => {
+router.get('/summary', authenticate, async (req, res, next) => {
   try {
-    // Get distinct house numbers from recent data
-    const houses = await SensorData.distinct('houseNumber', {
-      timestamp: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
-    });
-
-    const summary = [];
-    for (const houseNumber of houses) {
-      const latest = await SensorData.findOne({ houseNumber })
-        .sort({ timestamp: -1 })
-        .lean();
-      if (latest) {
-        summary.push({ houseNumber, ...latest });
-      }
-    }
+    // Latest reading per house in one aggregation (the sort matches the
+    // {houseNumber, timestamp} index, so $first per group is a distinct scan)
+    const summary = await SensorData.aggregate([
+      { $match: { timestamp: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } } },
+      { $sort: { houseNumber: 1, timestamp: -1 } },
+      { $group: { _id: '$houseNumber', latest: { $first: '$$ROOT' } } },
+      { $replaceRoot: { newRoot: '$latest' } },
+      { $sort: { houseNumber: 1 } }
+    ]);
 
     res.json(summary);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 

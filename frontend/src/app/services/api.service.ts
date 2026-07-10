@@ -9,6 +9,18 @@ export class ApiService {
 
   constructor(private http: HttpClient) {}
 
+  // Builds HttpParams from a plain object, skipping empty values.
+  // Previously this loop was copy-pasted into ~15 methods.
+  private toParams(params?: any): HttpParams {
+    let p = new HttpParams();
+    if (params) {
+      Object.keys(params).forEach(key => {
+        if (params[key]) p = p.set(key, params[key]);
+      });
+    }
+    return p;
+  }
+
   // Dashboard
   getDashboard(): Observable<any> {
     return this.http.get(`${this.apiUrl}/dashboard`);
@@ -16,13 +28,7 @@ export class ApiService {
 
   // Batches
   getBatches(params?: any): Observable<any[]> {
-    let httpParams = new HttpParams();
-    if (params) {
-      Object.keys(params).forEach(key => {
-        if (params[key]) httpParams = httpParams.set(key, params[key]);
-      });
-    }
-    return this.http.get<any[]>(`${this.apiUrl}/batches`, { params: httpParams });
+    return this.http.get<any[]>(`${this.apiUrl}/batches`, { params: this.toParams(params) });
   }
 
   getBatch(id: string): Observable<any> {
@@ -43,13 +49,7 @@ export class ApiService {
 
   // Mortality
   getMortality(params?: any): Observable<any[]> {
-    let httpParams = new HttpParams();
-    if (params) {
-      Object.keys(params).forEach(key => {
-        if (params[key]) httpParams = httpParams.set(key, params[key]);
-      });
-    }
-    return this.http.get<any[]>(`${this.apiUrl}/mortality`, { params: httpParams });
+    return this.http.get<any[]>(`${this.apiUrl}/mortality`, { params: this.toParams(params) });
   }
 
   createMortality(data: any): Observable<any> {
@@ -62,13 +62,7 @@ export class ApiService {
 
   // Batch Expenses
   getBatchExpenses(params?: any): Observable<any[]> {
-    let httpParams = new HttpParams();
-    if (params) {
-      Object.keys(params).forEach(key => {
-        if (params[key]) httpParams = httpParams.set(key, params[key]);
-      });
-    }
-    return this.http.get<any[]>(`${this.apiUrl}/batch-expenses`, { params: httpParams });
+    return this.http.get<any[]>(`${this.apiUrl}/batch-expenses`, { params: this.toParams(params) });
   }
 
   getBatchExpenseSummary(batchId: string): Observable<any> {
@@ -89,13 +83,7 @@ export class ApiService {
 
   // Finance
   getFinance(params?: any): Observable<any[]> {
-    let httpParams = new HttpParams();
-    if (params) {
-      Object.keys(params).forEach(key => {
-        if (params[key]) httpParams = httpParams.set(key, params[key]);
-      });
-    }
-    return this.http.get<any[]>(`${this.apiUrl}/finance`, { params: httpParams });
+    return this.http.get<any[]>(`${this.apiUrl}/finance`, { params: this.toParams(params) });
   }
 
   getFinanceSummary(): Observable<any> {
@@ -116,13 +104,7 @@ export class ApiService {
 
   // Daily Logs
   getDailyLogs(params?: any): Observable<any[]> {
-    let httpParams = new HttpParams();
-    if (params) {
-      Object.keys(params).forEach(key => {
-        if (params[key]) httpParams = httpParams.set(key, params[key]);
-      });
-    }
-    return this.http.get<any[]>(`${this.apiUrl}/daily-logs`, { params: httpParams });
+    return this.http.get<any[]>(`${this.apiUrl}/daily-logs`, { params: this.toParams(params) });
   }
 
   getDailyLogAnalytics(batchId: string): Observable<any> {
@@ -143,8 +125,7 @@ export class ApiService {
 
   // Vaccinations
   getVaccinations(params?: any): Observable<any[]> {
-    let p = new HttpParams(); if (params) Object.keys(params).forEach(k => { if (params[k]) p = p.set(k, params[k]); });
-    return this.http.get<any[]>(`${this.apiUrl}/vaccinations`, { params: p });
+    return this.http.get<any[]>(`${this.apiUrl}/vaccinations`, { params: this.toParams(params) });
   }
   getUpcomingVaccinations(): Observable<any[]> { return this.http.get<any[]>(`${this.apiUrl}/vaccinations/upcoming`); }
   createVaccination(data: any): Observable<any> { return this.http.post(`${this.apiUrl}/vaccinations`, data); }
@@ -153,8 +134,7 @@ export class ApiService {
 
   // Health Logs
   getHealthLogs(params?: any): Observable<any[]> {
-    let p = new HttpParams(); if (params) Object.keys(params).forEach(k => { if (params[k]) p = p.set(k, params[k]); });
-    return this.http.get<any[]>(`${this.apiUrl}/health-logs`, { params: p });
+    return this.http.get<any[]>(`${this.apiUrl}/health-logs`, { params: this.toParams(params) });
   }
   createHealthLog(data: any): Observable<any> { return this.http.post(`${this.apiUrl}/health-logs`, data); }
   updateHealthLog(id: string, data: any): Observable<any> { return this.http.put(`${this.apiUrl}/health-logs/${id}`, data); }
@@ -162,8 +142,7 @@ export class ApiService {
 
   // Alerts
   getAlerts(params?: any): Observable<any[]> {
-    let p = new HttpParams(); if (params) Object.keys(params).forEach(k => { if (params[k]) p = p.set(k, params[k]); });
-    return this.http.get<any[]>(`${this.apiUrl}/alerts`, { params: p });
+    return this.http.get<any[]>(`${this.apiUrl}/alerts`, { params: this.toParams(params) });
   }
   getUnreadAlertCount(): Observable<any> { return this.http.get(`${this.apiUrl}/alerts/unread-count`); }
   generateAlerts(): Observable<any> { return this.http.post(`${this.apiUrl}/alerts/generate`, {}); }
@@ -173,16 +152,14 @@ export class ApiService {
 
   // Inventory
   getInventory(params?: any): Observable<any[]> {
-    let p = new HttpParams(); if (params) Object.keys(params).forEach(k => { if (params[k]) p = p.set(k, params[k]); });
-    return this.http.get<any[]>(`${this.apiUrl}/inventory`, { params: p });
+    return this.http.get<any[]>(`${this.apiUrl}/inventory`, { params: this.toParams(params) });
   }
   getLowStock(): Observable<any[]> { return this.http.get<any[]>(`${this.apiUrl}/inventory/low-stock`); }
   createInventory(data: any): Observable<any> { return this.http.post(`${this.apiUrl}/inventory`, data); }
   updateInventory(id: string, data: any): Observable<any> { return this.http.put(`${this.apiUrl}/inventory/${id}`, data); }
   deleteInventory(id: string): Observable<any> { return this.http.delete(`${this.apiUrl}/inventory/${id}`); }
   getInventoryTransactions(params?: any): Observable<any[]> {
-    let p = new HttpParams(); if (params) Object.keys(params).forEach(k => { if (params[k]) p = p.set(k, params[k]); });
-    return this.http.get<any[]>(`${this.apiUrl}/inventory/transactions`, { params: p });
+    return this.http.get<any[]>(`${this.apiUrl}/inventory/transactions`, { params: this.toParams(params) });
   }
   createInventoryTransaction(data: any): Observable<any> { return this.http.post(`${this.apiUrl}/inventory/transactions`, data); }
 
@@ -194,8 +171,7 @@ export class ApiService {
 
   // Sales
   getSales(params?: any): Observable<any[]> {
-    let p = new HttpParams(); if (params) Object.keys(params).forEach(k => { if (params[k]) p = p.set(k, params[k]); });
-    return this.http.get<any[]>(`${this.apiUrl}/sales`, { params: p });
+    return this.http.get<any[]>(`${this.apiUrl}/sales`, { params: this.toParams(params) });
   }
   getSalesSummary(): Observable<any> { return this.http.get(`${this.apiUrl}/sales/summary`); }
   getSale(id: string): Observable<any> { return this.http.get(`${this.apiUrl}/sales/${id}`); }
@@ -206,15 +182,13 @@ export class ApiService {
   // Sensor Data
   getSensorLatest(houseNumber: string): Observable<any> { return this.http.get(`${this.apiUrl}/sensor-data/latest/${houseNumber}`); }
   getSensorHistory(houseNumber: string, params?: any): Observable<any[]> {
-    let p = new HttpParams(); if (params) Object.keys(params).forEach(k => { if (params[k]) p = p.set(k, params[k]); });
-    return this.http.get<any[]>(`${this.apiUrl}/sensor-data/history/${houseNumber}`, { params: p });
+    return this.http.get<any[]>(`${this.apiUrl}/sensor-data/history/${houseNumber}`, { params: this.toParams(params) });
   }
   getSensorSummary(): Observable<any[]> { return this.http.get<any[]>(`${this.apiUrl}/sensor-data/summary`); }
 
   // Devices
   getDevices(params?: any): Observable<any[]> {
-    let p = new HttpParams(); if (params) Object.keys(params).forEach(k => { if (params[k]) p = p.set(k, params[k]); });
-    return this.http.get<any[]>(`${this.apiUrl}/devices`, { params: p });
+    return this.http.get<any[]>(`${this.apiUrl}/devices`, { params: this.toParams(params) });
   }
   getDeviceOverview(): Observable<any[]> { return this.http.get<any[]>(`${this.apiUrl}/devices/overview`); }
   getDevice(id: string): Observable<any> { return this.http.get(`${this.apiUrl}/devices/${id}`); }
@@ -229,8 +203,7 @@ export class ApiService {
 
   // Automation Rules
   getAutomationRules(params?: any): Observable<any[]> {
-    let p = new HttpParams(); if (params) Object.keys(params).forEach(k => { if (params[k]) p = p.set(k, params[k]); });
-    return this.http.get<any[]>(`${this.apiUrl}/automation-rules`, { params: p });
+    return this.http.get<any[]>(`${this.apiUrl}/automation-rules`, { params: this.toParams(params) });
   }
   getAutomationPresets(): Observable<any[]> { return this.http.get<any[]>(`${this.apiUrl}/automation-rules/presets`); }
   createAutomationRule(data: any): Observable<any> { return this.http.post(`${this.apiUrl}/automation-rules`, data); }
@@ -242,8 +215,7 @@ export class ApiService {
 
   // AI
   getAIInsights(params?: any): Observable<any[]> {
-    let p = new HttpParams(); if (params) Object.keys(params).forEach(k => { if (params[k]) p = p.set(k, params[k]); });
-    return this.http.get<any[]>(`${this.apiUrl}/ai/insights`, { params: p });
+    return this.http.get<any[]>(`${this.apiUrl}/ai/insights`, { params: this.toParams(params) });
   }
   getBatchInsights(batchId: string): Observable<any[]> { return this.http.get<any[]>(`${this.apiUrl}/ai/insights/${batchId}`); }
   triggerAnalysis(data?: any): Observable<any> { return this.http.post(`${this.apiUrl}/ai/analyze`, data || {}); }
@@ -253,8 +225,7 @@ export class ApiService {
 
   // Sensor Alerts
   getSensorAlerts(params?: any): Observable<any[]> {
-    let p = new HttpParams(); if (params) Object.keys(params).forEach(k => { if (params[k]) p = p.set(k, params[k]); });
-    return this.http.get<any[]>(`${this.apiUrl}/sensor-alerts`, { params: p });
+    return this.http.get<any[]>(`${this.apiUrl}/sensor-alerts`, { params: this.toParams(params) });
   }
   getSensorAlertUnreadCount(): Observable<any> { return this.http.get(`${this.apiUrl}/sensor-alerts/unread-count`); }
   markSensorAlertRead(id: string): Observable<any> { return this.http.put(`${this.apiUrl}/sensor-alerts/${id}/read`, {}); }
@@ -262,8 +233,7 @@ export class ApiService {
 
   // Cameras
   getCameras(params?: any): Observable<any[]> {
-    let p = new HttpParams(); if (params) Object.keys(params).forEach(k => { if (params[k]) p = p.set(k, params[k]); });
-    return this.http.get<any[]>(`${this.apiUrl}/cameras`, { params: p });
+    return this.http.get<any[]>(`${this.apiUrl}/cameras`, { params: this.toParams(params) });
   }
   getCamera(id: string): Observable<any> { return this.http.get(`${this.apiUrl}/cameras/${id}`); }
   createCamera(data: any): Observable<any> { return this.http.post(`${this.apiUrl}/cameras`, data); }

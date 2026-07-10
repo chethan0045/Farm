@@ -100,7 +100,7 @@ import { ApiService } from '../../services/api.service';
       <div class="flex gap-1 overflow-x-auto">
         <button *ngFor="let tab of tabs" (click)="activeTab = tab.value; loadData()"
           class="px-3 py-1.5 rounded-lg text-sm whitespace-nowrap transition"
-          [class.bg-emerald-600]="activeTab === tab.value" [class.text-white]="activeTab === tab.value"
+          [class.bg-blue-600]="activeTab === tab.value" [class.text-white]="activeTab === tab.value"
           [class.bg-gray-100]="activeTab !== tab.value">
           {{ tab.label }}
         </button>

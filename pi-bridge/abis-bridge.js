@@ -75,8 +75,38 @@ function registersToReading(regs) {
 }
 
 // --- Cloud upload with offline buffering ---
-const queue = []; // readings that failed to upload (kept in order, capped)
+// The queue survives restarts/power cuts: it's persisted to disk (throttled)
+// and reloaded on start, so hours of buffered readings aren't lost when the
+// Pi reboots mid-outage.
 const QUEUE_MAX = 500;
+const QUEUE_FILE = path.join(__dirname, 'queue.json');
+const queue = (() => {
+  try {
+    const saved = JSON.parse(fs.readFileSync(QUEUE_FILE, 'utf8'));
+    if (Array.isArray(saved) && saved.length) {
+      log(`Restored ${saved.length} buffered readings from ${QUEUE_FILE}`);
+      return saved.slice(-QUEUE_MAX);
+    }
+  } catch {} // no file yet or corrupt — start empty
+  return [];
+})();
+
+let queueDirty = false;
+function persistQueue() {
+  if (!queueDirty) return;
+  try {
+    // Write-then-rename so a power cut mid-write can't corrupt the file
+    fs.writeFileSync(QUEUE_FILE + '.tmp', JSON.stringify(queue));
+    fs.renameSync(QUEUE_FILE + '.tmp', QUEUE_FILE);
+    queueDirty = false;
+  } catch (e) {
+    log(`Queue persist failed: ${e.message}`);
+  }
+}
+setInterval(persistQueue, 10000);
+for (const sig of ['SIGINT', 'SIGTERM']) {
+  process.on(sig, () => { persistQueue(); process.exit(0); });
+}
 
 async function post(url, body) {
   const res = await fetch(url, {
@@ -96,6 +126,7 @@ async function upload(reading) {
   } catch (e) {
     queue.push({ ...reading, timestamp: new Date().toISOString() });
     while (queue.length > QUEUE_MAX) queue.shift();
+    queueDirty = true;
     log(`Upload failed (${e.message}) — buffered (${queue.length} queued)`);
   }
 }
@@ -106,6 +137,7 @@ async function flushQueue() {
   try {
     await post(`${cfg.apiUrl}/api/sensor-data/bulk`, { readings: batch });
     queue.splice(0, batch.length);
+    queueDirty = true;
     log(`Flushed ${batch.length} buffered readings (${queue.length} left)`);
   } catch (e) {
     log(`Bulk flush failed: ${e.message}`);

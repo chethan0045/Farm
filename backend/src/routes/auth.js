@@ -2,14 +2,24 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { JWT_SECRET, authenticate } = require('../middleware/auth');
+const { authRateLimit } = require('../middleware/rateLimit');
 
 const router = express.Router();
 
-router.post('/register', async (req, res) => {
+router.post('/register', authRateLimit, async (req, res, next) => {
   try {
     const { username, email, password } = req.body;
-    if (!username || !email || !password) {
+    if (typeof username !== 'string' || typeof email !== 'string' || typeof password !== 'string'
+        || !username || !email || !password) {
       return res.status(400).json({ error: 'All fields are required' });
+    }
+    // Public registration is closed by default: the first account can always
+    // be created (bootstrap), after that set ALLOW_REGISTRATION=true to open it.
+    if (process.env.ALLOW_REGISTRATION !== 'true') {
+      const userCount = await User.estimatedDocumentCount();
+      if (userCount > 0) {
+        return res.status(403).json({ error: 'Registration is disabled' });
+      }
     }
     const existing = await User.findOne({ $or: [{ email }, { username }] });
     if (existing) return res.status(409).json({ error: 'User already exists' });
@@ -18,15 +28,17 @@ router.post('/register', async (req, res) => {
     const token = jwt.sign({ id: user._id, username: user.username, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
     res.status(201).json({ token, user: { id: user._id, username: user.username, email: user.email, role: user.role } });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
-router.post('/login', async (req, res) => {
+router.post('/login', authRateLimit, async (req, res, next) => {
   try {
     const { email, username, password } = req.body;
     const loginId = email || username;
-    if (!loginId || !password) return res.status(400).json({ error: 'Username/email and password are required' });
+    if (typeof loginId !== 'string' || typeof password !== 'string' || !loginId || !password) {
+      return res.status(400).json({ error: 'Username/email and password are required' });
+    }
 
     const user = await User.findOne({ $or: [{ email: loginId }, { username: loginId }] });
     if (!user || !(await user.comparePassword(password))) {
@@ -35,17 +47,17 @@ router.post('/login', async (req, res) => {
     const token = jwt.sign({ id: user._id, username: user.username, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
     res.json({ token, user: { id: user._id, username: user.username, email: user.email, role: user.role } });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
-router.get('/me', authenticate, async (req, res) => {
+router.get('/me', authenticate, async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
     if (!user) return res.status(404).json({ error: 'User not found' });
     res.json(user);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 

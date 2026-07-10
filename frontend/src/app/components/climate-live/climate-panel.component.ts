@@ -1,7 +1,9 @@
-import { Component, Input, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, AfterViewInit, ChangeDetectorRef, NgZone, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { ApiService } from '../../services/api.service';
+import { SensorStore } from '../../services/sensor-store.service';
 
 /**
  * Reusable NL-X16 climate-controller screen replica.
@@ -18,7 +20,7 @@ import { ApiService } from '../../services/api.service';
         <div class="flex flex-wrap gap-2">
           <button *ngFor="let h of houses" (click)="selectHouse(h.houseNumber)"
             class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium border transition"
-            [ngClass]="selectedHouse === h.houseNumber ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-gray-600 border-gray-200 hover:border-emerald-300'">
+            [ngClass]="selectedHouse === h.houseNumber ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'">
             <span class="w-2 h-2 rounded-full" [ngClass]="h.onlineCount > 0 ? 'bg-green-400' : 'bg-gray-400'" [class.animate-pulse]="h.onlineCount > 0"></span>
             House {{ h.houseNumber }}
           </button>
@@ -34,7 +36,7 @@ import { ApiService } from '../../services/api.service';
         <div class="text-4xl mb-2">🌡️</div>
         <p class="text-gray-600 font-medium mb-1">No houses with sensor data yet</p>
         <p class="text-gray-400 text-sm mb-3">Register a device and start the gateway to see live climate</p>
-        <a routerLink="/devices" class="text-emerald-600 hover:underline text-sm">Register a device →</a>
+        <a routerLink="/devices" class="text-blue-600 hover:underline text-sm">Register a device →</a>
       </div>
 
       <!-- ================= CONTROLLER SCREEN REPLICA ================= -->
@@ -54,7 +56,7 @@ import { ApiService } from '../../services/api.service';
               {{ isOnline ? '● RUNNING' : '● OFFLINE' }} — HOUSE {{ selectedHouse }}
             </span>
             <div class="flex items-center gap-2">
-              <span class="text-[11px] text-amber-300 tabular-nums">{{ clock }}</span>
+              <span #clockEl class="text-[11px] text-amber-300 tabular-nums"></span>
               <button *ngIf="isPwa && !fullscreen" (click)="enterFullscreen()" title="Full screen" class="text-cyan-300 hover:text-cyan-100 text-sm leading-none px-1">⛶</button>
             </div>
           </div>
@@ -168,25 +170,38 @@ export class ClimatePanelComponent implements OnInit, OnDestroy {
   selectedHouse = '';
   reading: any = null;
   isOnline = false;
-  clock = '';
   leftRows: any[] = [];
   rightRows: any[] = [];
   flock = { birds: '--', age: '--', day: '--', mortality: '--' };
   private batches: any[] = [];
-  private dataTimer: any;
+  private subs = new Subscription();
   private clockTimer: any;
+  @ViewChild('clockEl') clockEl?: ElementRef<HTMLSpanElement>;
 
-  constructor(private api: ApiService, private cdr: ChangeDetectorRef) {}
+  constructor(private api: ApiService, private store: SensorStore, private cdr: ChangeDetectorRef, private zone: NgZone) {}
 
   ngOnInit() {
-    this.tickClock();
-    this.clockTimer = setInterval(() => { this.tickClock(); this.cdr.detectChanges(); }, 1000);
-    this.loadAll();
-    this.dataTimer = setInterval(() => this.loadAll(), this.refreshInterval * 1000);
+    // Shared store: one poll feeds this panel, the dashboard and the IoT page
+    this.subs.add(this.store.deviceOverview$.subscribe(data => this.applyOverview(data)));
+    this.subs.add(this.store.activeBatches$.subscribe(data => this.applyBatches(data)));
+  }
+
+  ngAfterViewInit() {
+    // The clock ticks outside Angular and writes straight to the DOM — a 1s
+    // change-detection cycle for the whole panel just to move a clock is waste.
+    this.zone.runOutsideAngular(() => {
+      const tick = () => {
+        if (!this.clockEl) return;
+        this.clockEl.nativeElement.textContent = new Date().toLocaleString('en-GB',
+          { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      };
+      tick();
+      this.clockTimer = setInterval(tick, 1000);
+    });
   }
 
   ngOnDestroy() {
-    if (this.dataTimer) clearInterval(this.dataTimer);
+    this.subs.unsubscribe();
     if (this.clockTimer) clearInterval(this.clockTimer);
     if (this.fullscreen) this.exitFullscreen(true);
   }
@@ -222,26 +237,24 @@ export class ClimatePanelComponent implements OnInit, OnDestroy {
 
   private onPopState = () => { this.exitFullscreen(true); };
 
-  tickClock() {
-    const d = new Date();
-    this.clock = d.toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  private applyOverview(data: any[]) {
+    this.houses = data || [];
+    if (!this.selectedHouse && this.houses.length) this.selectedHouse = this.houses[0].houseNumber;
+    this.updateOnline();
+    this.cdr.detectChanges();
+    if (this.selectedHouse) this.loadReading();
   }
 
+  private applyBatches(data: any[]) {
+    this.batches = data || [];
+    this.buildFlock();
+    this.cdr.detectChanges();
+  }
+
+  // Manual "↻ refresh" — one-shot fetch outside the shared polling cadence
   loadAll() {
-    this.api.getDeviceOverview().subscribe({
-      next: (data) => {
-        this.houses = data || [];
-        if (!this.selectedHouse && this.houses.length) this.selectedHouse = this.houses[0].houseNumber;
-        this.updateOnline();
-        this.cdr.detectChanges();
-        if (this.selectedHouse) this.loadReading();
-      },
-      error: () => {}
-    });
-    this.api.getBatches({ status: 'active' }).subscribe({
-      next: (data) => { this.batches = data || []; this.buildFlock(); this.cdr.detectChanges(); },
-      error: () => {}
-    });
+    this.api.getDeviceOverview().subscribe({ next: (data) => this.applyOverview(data), error: () => {} });
+    this.api.getBatches({ status: 'active' }).subscribe({ next: (data) => this.applyBatches(data), error: () => {} });
   }
 
   updateOnline() {

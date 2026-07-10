@@ -43,8 +43,10 @@ class NotificationService {
     // webpush.setVapidDetails('mailto:...', VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
     // for (const sub of subscriptions) { await webpush.sendNotification(sub, JSON.stringify({title, body: message})); }
 
-    console.log(`[Push] Sent to ${recipients.length} recipients: ${title}`);
-    return { sent: true, channel: 'push', recipientCount: recipients.length };
+    // Must report sent:false until the above is implemented — claiming success
+    // makes escalation believe the user was notified when nobody was.
+    console.log(`[Push] Not implemented, would send to ${recipients.length} recipients: ${title}`);
+    return { sent: false, note: 'Push delivery not implemented yet' };
   }
 
   async sendSMS(phones, title, message) {

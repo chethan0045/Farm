@@ -83,8 +83,10 @@ async function escalateAlert(alert, policies) {
 }
 
 function startEscalationChecker() {
+  const { nonOverlapping } = require('./schedulerUtils');
+  const guardedProcess = nonOverlapping('Alert Escalation', processEscalations);
   // Check every 2 minutes
-  setInterval(() => processEscalations(), 2 * 60 * 1000);
+  setInterval(() => guardedProcess(), 2 * 60 * 1000);
   console.log('[Alert Escalation] Checker started - runs every 2 minutes');
 }
 

@@ -15,6 +15,11 @@ const batchSchema = new mongoose.Schema({
   notes: { type: String }
 }, { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } });
 
+// Every scheduler scans active batches; every sensor reading looks up the
+// active batch for its house.
+batchSchema.index({ status: 1 });
+batchSchema.index({ houseNumber: 1, status: 1 });
+
 batchSchema.pre('save', function (next) {
   if (this.isNew && this.currentCount === undefined) {
     this.currentCount = this.chicksArrived;

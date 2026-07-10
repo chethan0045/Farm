@@ -11,4 +11,9 @@ const alertSchema = new mongoose.Schema({
   data: { type: mongoose.Schema.Types.Mixed }
 }, { timestamps: true });
 
+// Dedup lookups in alertGenerator, unread count, escalation scans, list view
+alertSchema.index({ batch: 1, type: 1, isResolved: 1 });
+alertSchema.index({ isRead: 1 });
+alertSchema.index({ isResolved: 1, createdAt: -1 });
+
 module.exports = mongoose.model('Alert', alertSchema);

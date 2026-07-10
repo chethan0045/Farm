@@ -1,7 +1,9 @@
 import { Component, Input, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { ApiService } from '../../services/api.service';
+import { SensorStore } from '../../services/sensor-store.service';
 
 /**
  * ABIS-style live climate hero for the dashboard:
@@ -20,7 +22,7 @@ import { ApiService } from '../../services/api.service';
         <div class="flex flex-wrap gap-2">
           <button *ngFor="let h of houses" (click)="selectHouse(h.houseNumber)"
             class="flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold border transition"
-            [ngClass]="selectedHouse === h.houseNumber ? 'bg-emerald-600 text-white border-emerald-500 shadow-lg shadow-emerald-900/40' : 'bg-white/5 text-slate-300 border-cyan-900/40 hover:border-cyan-400'">
+            [ngClass]="selectedHouse === h.houseNumber ? 'bg-blue-600 text-white border-blue-500 shadow-lg shadow-emerald-900/40' : 'bg-white/5 text-slate-300 border-cyan-900/40 hover:border-cyan-400'">
             <span>🏠</span> House {{ h.houseNumber }}
           </button>
         </div>
@@ -246,21 +248,28 @@ export class HouseVizComponent implements OnInit, OnDestroy {
   private iy(x: number, y: number, z: number) { return this.OY - x * 0.7 + y * 1.0 - z * 2.0; }
   private p(x: number, y: number, z: number) { return `${this.ix(x, y).toFixed(1)},${this.iy(x, y, z).toFixed(1)}`; }
 
-  constructor(private api: ApiService, private cdr: ChangeDetectorRef) {}
+  private subs = new Subscription();
+  private activeBatches: any[] = [];
+
+  constructor(private api: ApiService, private store: SensorStore, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.tickDate();
     this.buildGeometry();
     this.buildRows();
     this.buildStatCards();
-    this.load();
+    // Overview + batches come from the shared polling store (one poll for
+    // all dashboard components instead of a private interval each).
+    this.subs.add(this.store.deviceOverview$.subscribe(data => this.applyOverview(data)));
+    this.subs.add(this.store.activeBatches$.subscribe(b => { this.activeBatches = b || []; this.pickBatch(); }));
     this.loadStatus();
     this.loadWeather();
-    this.timer = setInterval(() => { this.tickDate(); this.load(); }, this.refreshInterval * 1000);
+    this.timer = setInterval(() => this.tickDate(), 60000);
     this.statusTimer = setInterval(() => this.loadStatus(), 60000);
     this.weatherTimer = setInterval(() => this.loadWeather(), 600000);
   }
   ngOnDestroy() {
+    this.subs.unsubscribe();
     if (this.timer) clearInterval(this.timer);
     if (this.statusTimer) clearInterval(this.statusTimer);
     if (this.weatherTimer) clearInterval(this.weatherTimer);
@@ -341,15 +350,16 @@ export class HouseVizComponent implements OnInit, OnDestroy {
     const dp = P(86, 30, 1); this.dropPos = { x: dp.x, y: dp.y };
   }
 
+  private applyOverview(data: any[]) {
+    this.houses = data || [];
+    if (!this.selectedHouse && this.houses.length) this.selectedHouse = this.houses[0].houseNumber;
+    this.cdr.detectChanges();
+    if (this.selectedHouse) { this.loadReading(); this.pickBatch(); this.loadHistory(); }
+  }
+
+  // Manual one-shot refresh outside the shared polling cadence
   load() {
-    this.api.getDeviceOverview().subscribe({
-      next: (data) => {
-        this.houses = data || [];
-        if (!this.selectedHouse && this.houses.length) this.selectedHouse = this.houses[0].houseNumber;
-        this.cdr.detectChanges();
-        if (this.selectedHouse) { this.loadReading(); this.loadBatch(); this.loadHistory(); }
-      }, error: () => {}
-    });
+    this.api.getDeviceOverview().subscribe({ next: (data) => this.applyOverview(data), error: () => {} });
   }
   loadStatus() {
     this.api.getDevices().subscribe({
@@ -368,16 +378,15 @@ export class HouseVizComponent implements OnInit, OnDestroy {
   }
   online(h: any) { return h && h.onlineCount > 0; }
   get currentHouse() { return this.houses.find(x => x.houseNumber === this.selectedHouse); }
-  selectHouse(h: string) { this.selectedHouse = h; this.alarmAck = false; this.loadReading(); this.loadBatch(); this.loadHistory(); }
+  selectHouse(h: string) { this.selectedHouse = h; this.alarmAck = false; this.loadReading(); this.pickBatch(); this.loadHistory(); }
   loadReading() {
     this.api.getSensorLatest(this.selectedHouse).subscribe({
       next: (d) => { this.reading = (d && d.timestamp) ? d : null; this.buildRows(); this.buildStatCards(); this.cdr.detectChanges(); }, error: () => {}
     });
   }
-  loadBatch() {
-    this.api.getBatches({ status: 'active' }).subscribe({
-      next: (b) => { this.batch = (b || []).find((x: any) => x.houseNumber === this.selectedHouse) || null; this.cdr.detectChanges(); }, error: () => {}
-    });
+  private pickBatch() {
+    this.batch = this.activeBatches.find((x: any) => x.houseNumber === this.selectedHouse) || null;
+    this.cdr.detectChanges();
   }
   loadHistory() {
     const from = new Date(Date.now() - 6 * 3600 * 1000).toISOString();

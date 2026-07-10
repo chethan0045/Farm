@@ -6,7 +6,7 @@ const { authenticate } = require('../middleware/auth');
 const router = express.Router();
 router.use(authenticate);
 
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
   try {
     const { batchId, paymentStatus } = req.query;
     const filter = {};
@@ -15,11 +15,11 @@ router.get('/', async (req, res) => {
     const sales = await Sale.find(filter).populate('customer', 'name phone').populate('batch', 'batchNumber').sort({ date: -1 });
     res.json(sales);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
-router.get('/summary', async (req, res) => {
+router.get('/summary', async (req, res, next) => {
   try {
     const totalSales = await Sale.aggregate([{ $group: { _id: null, total: { $sum: '$totalAmount' }, paid: { $sum: '$paidAmount' } } }]);
     const pending = await Sale.countDocuments({ paymentStatus: { $ne: 'paid' } });
@@ -30,21 +30,21 @@ router.get('/summary', async (req, res) => {
       pendingCount: pending
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req, res, next) => {
   try {
     const sale = await Sale.findById(req.params.id).populate('customer').populate('batch', 'batchNumber');
     if (!sale) return res.status(404).json({ error: 'Sale not found' });
     res.json(sale);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', async (req, res, next) => {
   try {
     const sale = await Sale.create(req.body);
     // Update bird count if selling birds
@@ -57,26 +57,26 @@ router.post('/', async (req, res) => {
     const populated = await sale.populate([{ path: 'customer', select: 'name phone' }, { path: 'batch', select: 'batchNumber' }]);
     res.status(201).json(populated);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', async (req, res, next) => {
   try {
     const sale = await Sale.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true }).populate('customer', 'name phone').populate('batch', 'batchNumber');
     if (!sale) return res.status(404).json({ error: 'Sale not found' });
     res.json(sale);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', async (req, res, next) => {
   try {
     await Sale.findByIdAndDelete(req.params.id);
     res.json({ message: 'Deleted successfully' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 

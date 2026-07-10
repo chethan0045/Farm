@@ -90,28 +90,34 @@ async function getHouseOverview() {
     if (device.status === 'online') house.onlineCount++;
   }
 
-  // Get latest reading per house
-  for (const houseNumber of Object.keys(houseMap)) {
-    const latest = await SensorData.findOne({ houseNumber }).sort({ timestamp: -1 });
-    if (latest) {
-      houseMap[houseNumber].latestReading = {
-        temperature: latest.temperature,
-        humidity: latest.humidity,
-        ammoniaPPM: latest.ammoniaPPM,
-        co2PPM: latest.co2PPM,
-        feedLevelPercent: latest.feedLevelPercent,
-        waterLevelPercent: latest.waterLevelPercent,
-        timestamp: latest.timestamp
-      };
-    }
+  // Latest reading per house in one aggregation instead of a query per house
+  const latestPerHouse = await SensorData.aggregate([
+    { $match: { houseNumber: { $in: Object.keys(houseMap) } } },
+    { $sort: { houseNumber: 1, timestamp: -1 } },
+    { $group: { _id: '$houseNumber', latest: { $first: '$$ROOT' } } }
+  ]);
+
+  for (const { _id: houseNumber, latest } of latestPerHouse) {
+    if (!houseMap[houseNumber]) continue;
+    houseMap[houseNumber].latestReading = {
+      temperature: latest.temperature,
+      humidity: latest.humidity,
+      ammoniaPPM: latest.ammoniaPPM,
+      co2PPM: latest.co2PPM,
+      feedLevelPercent: latest.feedLevelPercent,
+      waterLevelPercent: latest.waterLevelPercent,
+      timestamp: latest.timestamp
+    };
   }
 
   return Object.values(houseMap);
 }
 
 function startDeviceHealthChecker() {
+  const { nonOverlapping } = require('./schedulerUtils');
+  const guardedCheck = nonOverlapping('Device Manager', checkDeviceHealth);
   // Check every 2 minutes
-  setInterval(() => checkDeviceHealth(), 2 * 60 * 1000);
+  setInterval(() => guardedCheck(), 2 * 60 * 1000);
   console.log('[Device Manager] Health checker started - runs every 2 minutes');
 }
 

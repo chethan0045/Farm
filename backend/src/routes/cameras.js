@@ -6,7 +6,7 @@ const Camera = require('../models/Camera');
 router.use(authenticate);
 
 // GET /api/cameras - List all cameras
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
   try {
     const filter = { isActive: true };
     if (req.query.houseNumber) filter.houseNumber = req.query.houseNumber;
@@ -14,36 +14,36 @@ router.get('/', async (req, res) => {
     const cameras = await Camera.find(filter).sort({ houseNumber: 1, name: 1 });
     res.json(cameras);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
 // GET /api/cameras/:id - Single camera details
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req, res, next) => {
   try {
     const camera = await Camera.findById(req.params.id);
     if (!camera) return res.status(404).json({ error: 'Camera not found' });
     res.json(camera);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
 // POST /api/cameras - Register a new camera
-router.post('/', async (req, res) => {
+router.post('/', async (req, res, next) => {
   try {
     const camera = await Camera.create({
       ...req.body,
-      registeredBy: req.user._id
+      registeredBy: req.user.id
     });
     res.status(201).json(camera);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
 // PUT /api/cameras/:id - Update camera
-router.put('/:id', async (req, res) => {
+router.put('/:id', async (req, res, next) => {
   try {
     const camera = await Camera.findByIdAndUpdate(
       req.params.id,
@@ -53,12 +53,12 @@ router.put('/:id', async (req, res) => {
     if (!camera) return res.status(404).json({ error: 'Camera not found' });
     res.json(camera);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
 // DELETE /api/cameras/:id - Soft delete
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', async (req, res, next) => {
   try {
     const camera = await Camera.findByIdAndUpdate(
       req.params.id,
@@ -68,7 +68,7 @@ router.delete('/:id', async (req, res) => {
     if (!camera) return res.status(404).json({ error: 'Camera not found' });
     res.json({ message: 'Camera removed', camera });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 

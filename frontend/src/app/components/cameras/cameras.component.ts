@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import Hls from 'hls.js';
 import { ApiService } from '../../services/api.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-cameras',
@@ -16,7 +17,7 @@ import { ApiService } from '../../services/api.service';
           <h1 class="text-2xl ctrl-title">Live Cameras</h1>
           <p class="text-sm text-gray-500">Watch live CCTV feeds from your poultry houses</p>
         </div>
-        <button (click)="openForm()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-emerald-700">
+        <button (click)="openForm()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700">
           + Add Camera
         </button>
       </div>
@@ -54,7 +55,7 @@ import { ApiService } from '../../services/api.service';
           </div>
           <div class="flex justify-end gap-2 mt-4">
             <button (click)="showForm = false" class="px-4 py-2 border rounded-lg text-sm">Cancel</button>
-            <button (click)="saveCamera()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm hover:bg-emerald-700">
+            <button (click)="saveCamera()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">
               {{ editId ? 'Update' : 'Add' }}
             </button>
           </div>
@@ -100,7 +101,7 @@ import { ApiService } from '../../services/api.service';
         <div class="text-4xl mb-2">📹</div>
         <p class="text-gray-600 font-medium mb-1">No cameras added</p>
         <p class="text-gray-400 text-sm mb-4">Add a camera's public stream URL to watch live from anywhere</p>
-        <button (click)="openForm()" class="bg-emerald-600 text-white px-5 py-2.5 rounded-xl hover:bg-emerald-700 font-medium">+ Add Camera</button>
+        <button (click)="openForm()" class="bg-blue-600 text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 font-medium">+ Add Camera</button>
       </div>
     </div>
   `
@@ -112,7 +113,7 @@ export class CamerasComponent implements OnInit, OnDestroy {
   form: any = {};
   private players: { [id: string]: Hls } = {};
 
-  constructor(private api: ApiService, private cdr: ChangeDetectorRef, private sanitizer: DomSanitizer) {}
+  constructor(private api: ApiService, private cdr: ChangeDetectorRef, private sanitizer: DomSanitizer, private toast: ToastService) {}
 
   ngOnInit() { this.loadCameras(); }
 
@@ -166,7 +167,7 @@ export class CamerasComponent implements OnInit, OnDestroy {
 
   saveCamera() {
     if (!this.form.name || !this.form.houseNumber || !this.form.streamUrl) {
-      alert('Name, house number and stream URL are required.');
+      this.toast.error('Name, house number and stream URL are required.');
       return;
     }
     const req = this.editId

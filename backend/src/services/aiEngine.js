@@ -114,7 +114,15 @@ async function calculateDiseaseRisk(batch, latestLog, sensorAvg) {
 
 async function predictMortality(batch, days = 7) {
   const logs = await DailyLog.find({ batch: batch._id }).sort({ date: -1 }).limit(14);
-  const dailyRates = logs.map(l => (l.mortalityCount || 0) / (batch.currentCount || 1));
+
+  // Reconstruct the flock size at each logged day (today's count plus all
+  // deaths recorded that day and after). Dividing every day by the current
+  // count would understate early-life rates.
+  let flockAtDay = batch.currentCount || 1;
+  const dailyRates = logs.map(l => {
+    flockAtDay += (l.mortalityCount || 0);
+    return (l.mortalityCount || 0) / Math.max(flockAtDay, 1);
+  });
 
   // EMA with alpha = 0.3
   let ema = dailyRates[dailyRates.length - 1] || 0;
@@ -132,9 +140,14 @@ async function predictMortality(batch, days = 7) {
     const predictedRate = 0.6 * ema + 0.4 * baseline;
     const predictedCount = Math.round(remainingBirds * predictedRate);
 
+    // Normalize to midnight so PredictionLog upserts keyed on this date
+    // match across runs instead of creating a new doc per analysis.
+    const predictedDate = new Date(Date.now() + d * 86400000);
+    predictedDate.setUTCHours(0, 0, 0, 0);
+
     predictions.push({
       day: futureDay,
-      date: new Date(Date.now() + d * 86400000),
+      date: predictedDate,
       predictedMortality: predictedCount,
       predictedRate: +(predictedRate * 100).toFixed(3),
       confidence: Math.max(50, 100 - d * 5)
@@ -385,10 +398,54 @@ async function generateInsights(analysis) {
   }
 }
 
+// ============== PREDICTION ACCURACY BACKFILL ==============
+
+// Once a predicted day has passed, fill in the actual mortality from that
+// day's DailyLog and score the prediction. Without this, PredictionLog is
+// write-only and the accuracy feature doesn't exist.
+async function backfillPredictionAccuracy() {
+  try {
+    const todayStart = new Date();
+    todayStart.setUTCHours(0, 0, 0, 0);
+    const lookbackLimit = new Date(todayStart.getTime() - 30 * 86400000);
+
+    const pending = await PredictionLog.find({
+      type: 'mortality',
+      actualValue: null,
+      predictedDate: { $gte: lookbackLimit, $lt: todayStart }
+    }).limit(500);
+
+    let filled = 0;
+    for (const log of pending) {
+      const dayStart = new Date(log.predictedDate);
+      dayStart.setUTCHours(0, 0, 0, 0);
+      const dayEnd = new Date(dayStart.getTime() + 86400000);
+
+      const daily = await DailyLog.findOne({
+        batch: log.batch,
+        date: { $gte: dayStart, $lt: dayEnd }
+      }).lean();
+      if (!daily) continue; // no daily log recorded (yet) for that day
+
+      const actual = daily.mortalityCount || 0;
+      log.actualValue = actual;
+      const denom = Math.max(log.predictedValue, actual, 1);
+      log.accuracy = Math.round(100 * (1 - Math.abs(log.predictedValue - actual) / denom));
+      await log.save();
+      filled++;
+    }
+
+    if (filled > 0) console.log(`[AI Engine] Backfilled accuracy for ${filled} predictions`);
+  } catch (err) {
+    console.error('[AI Engine] Accuracy backfill error:', err.message);
+  }
+}
+
 // ============== ANALYZE ALL BATCHES ==============
 
 async function analyzeAllBatches() {
   try {
+    await backfillPredictionAccuracy();
     const batches = await Batch.find({ status: 'active' });
     for (const batch of batches) {
       const analysis = await analyzeBatch(batch._id);
@@ -414,11 +471,13 @@ async function analyzeAllBatches() {
 }
 
 function startAIScheduler() {
+  const { nonOverlapping } = require('./schedulerUtils');
+  const guardedAnalyze = nonOverlapping('AI Engine', analyzeAllBatches);
   const intervalHours = parseInt(process.env.AI_ANALYSIS_INTERVAL_HOURS) || 6;
   // Run first analysis after 1 minute
-  setTimeout(() => analyzeAllBatches(), 60 * 1000);
+  setTimeout(() => guardedAnalyze(), 60 * 1000);
   // Then every N hours
-  setInterval(() => analyzeAllBatches(), intervalHours * 60 * 60 * 1000);
+  setInterval(() => guardedAnalyze(), intervalHours * 60 * 60 * 1000);
   console.log(`[AI Engine] Scheduler started - runs every ${intervalHours} hours`);
 }
 
@@ -426,6 +485,7 @@ module.exports = {
   analyzeBatch,
   generateInsights,
   analyzeAllBatches,
+  backfillPredictionAccuracy,
   calculateDiseaseRisk,
   predictMortality,
   optimizeFCR,

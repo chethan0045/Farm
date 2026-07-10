@@ -16,14 +16,14 @@
   <link rel="apple-touch-icon" href="logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <script>(function(){
-    var t = localStorage.getItem('theme') || 'dark';
-    document.documentElement.classList.add('theme-' + t);
+    // Light design system is the only theme; the class stays for CSS hooks.
+    document.documentElement.classList.add('theme-light');
     var m = document.querySelector('meta[name="theme-color"]');
-    if (m) m.setAttribute('content', t === 'light' ? '#eef2f7' : '#06122b');
+    if (m) m.setAttribute('content', '#0b1626');
   })();</script>
   <app-root></app-root>
   <script>

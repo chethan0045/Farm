@@ -7,7 +7,7 @@ const { evaluateAll, RULE_PRESETS } = require('../services/automationEngine');
 router.use(authenticate);
 
 // GET /api/automation-rules - List all rules
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
   try {
     const filter = {};
     if (req.query.houseNumber) filter.houseNumber = req.query.houseNumber;
@@ -18,42 +18,42 @@ router.get('/', async (req, res) => {
       .sort({ priority: -1, createdAt: -1 });
     res.json(rules);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
 // GET /api/automation-rules/presets - Built-in rule templates
-router.get('/presets', async (req, res) => {
+router.get('/presets', async (req, res, next) => {
   res.json(RULE_PRESETS);
 });
 
 // GET /api/automation-rules/:id - Single rule
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req, res, next) => {
   try {
     const rule = await AutomationRule.findById(req.params.id)
       .populate('createdBy', 'username');
     if (!rule) return res.status(404).json({ error: 'Rule not found' });
     res.json(rule);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
 // POST /api/automation-rules - Create rule
-router.post('/', async (req, res) => {
+router.post('/', async (req, res, next) => {
   try {
     const rule = await AutomationRule.create({
       ...req.body,
-      createdBy: req.user._id
+      createdBy: req.user.id
     });
     res.status(201).json(rule);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
 // PUT /api/automation-rules/:id - Update rule
-router.put('/:id', async (req, res) => {
+router.put('/:id', async (req, res, next) => {
   try {
     const rule = await AutomationRule.findByIdAndUpdate(
       req.params.id,
@@ -63,23 +63,23 @@ router.put('/:id', async (req, res) => {
     if (!rule) return res.status(404).json({ error: 'Rule not found' });
     res.json(rule);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
 // DELETE /api/automation-rules/:id - Delete rule
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', async (req, res, next) => {
   try {
     const rule = await AutomationRule.findByIdAndDelete(req.params.id);
     if (!rule) return res.status(404).json({ error: 'Rule not found' });
     res.json({ message: 'Rule deleted' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
 // PUT /api/automation-rules/:id/toggle - Enable/disable
-router.put('/:id/toggle', async (req, res) => {
+router.put('/:id/toggle', async (req, res, next) => {
   try {
     const rule = await AutomationRule.findById(req.params.id);
     if (!rule) return res.status(404).json({ error: 'Rule not found' });
@@ -88,12 +88,12 @@ router.put('/:id/toggle', async (req, res) => {
     await rule.save();
     res.json(rule);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
 // PUT /api/automation-rules/:id/override - Set manual override
-router.put('/:id/override', async (req, res) => {
+router.put('/:id/override', async (req, res, next) => {
   try {
     const { active, durationMinutes } = req.body;
     const rule = await AutomationRule.findById(req.params.id);
@@ -103,21 +103,21 @@ router.put('/:id/override', async (req, res) => {
     rule.overrideUntil = durationMinutes
       ? new Date(Date.now() + durationMinutes * 60 * 1000)
       : null;
-    rule.overrideBy = req.user._id;
+    rule.overrideBy = req.user.id;
     await rule.save();
     res.json(rule);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
 // POST /api/automation-rules/evaluate - Force evaluate all rules now
-router.post('/evaluate', async (req, res) => {
+router.post('/evaluate', async (req, res, next) => {
   try {
     await evaluateAll();
     res.json({ message: 'Evaluation complete' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 

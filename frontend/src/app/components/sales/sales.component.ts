@@ -12,12 +12,12 @@ import { ApiService } from '../../services/api.service';
       <!-- Tab Navigation -->
       <div class="flex items-center gap-4 mb-6">
         <button (click)="activeTab='sales'" class="px-5 py-2 rounded-lg text-sm font-semibold transition"
-          [class.bg-emerald-600]="activeTab==='sales'" [class.text-white]="activeTab==='sales'"
+          [class.bg-blue-600]="activeTab==='sales'" [class.text-white]="activeTab==='sales'"
           [class.bg-gray-200]="activeTab!=='sales'" [class.text-gray-700]="activeTab!=='sales'">
           Sales
         </button>
         <button (click)="activeTab='customers'" class="px-5 py-2 rounded-lg text-sm font-semibold transition"
-          [class.bg-emerald-600]="activeTab==='customers'" [class.text-white]="activeTab==='customers'"
+          [class.bg-blue-600]="activeTab==='customers'" [class.text-white]="activeTab==='customers'"
           [class.bg-gray-200]="activeTab!=='customers'" [class.text-gray-700]="activeTab!=='customers'">
           Customers
         </button>
@@ -27,7 +27,7 @@ import { ApiService } from '../../services/api.service';
       <div *ngIf="activeTab==='sales'">
         <div class="flex justify-between items-center mb-6">
           <h2 class="text-2xl ctrl-title">Sales</h2>
-          <button (click)="openSaleModal()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition text-sm font-medium">+ Add Sale</button>
+          <button (click)="openSaleModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium">+ Add Sale</button>
         </div>
 
         <!-- Summary Cards -->
@@ -94,7 +94,7 @@ import { ApiService } from '../../services/api.service';
           <div *ngIf="sales.length === 0" class="bg-white rounded-2xl shadow-sm py-16 text-center">
             <div class="text-5xl mb-3">🛒</div>
             <p class="text-gray-500 mb-4">No sales records found.</p>
-            <button (click)="openSaleModal()" class="bg-emerald-600 text-white px-5 py-2 rounded-lg hover:bg-emerald-700 transition text-sm font-medium">+ Add Sale</button>
+            <button (click)="openSaleModal()" class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium">+ Add Sale</button>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" *ngIf="sales.length > 0">
@@ -140,7 +140,7 @@ import { ApiService } from '../../services/api.service';
       <div *ngIf="activeTab==='customers'">
         <div class="flex justify-between items-center mb-6">
           <h2 class="text-2xl ctrl-title">Customers</h2>
-          <button (click)="openCustomerModal()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition text-sm font-medium">+ Add Customer</button>
+          <button (click)="openCustomerModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium">+ Add Customer</button>
         </div>
 
         <!-- Loading Skeletons -->
@@ -165,7 +165,7 @@ import { ApiService } from '../../services/api.service';
           <div *ngIf="customers.length === 0" class="bg-white rounded-2xl shadow-sm py-16 text-center">
             <div class="text-5xl mb-3">👤</div>
             <p class="text-gray-500 mb-4">No customers found.</p>
-            <button (click)="openCustomerModal()" class="bg-emerald-600 text-white px-5 py-2 rounded-lg hover:bg-emerald-700 transition text-sm font-medium">+ Add Customer</button>
+            <button (click)="openCustomerModal()" class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium">+ Add Customer</button>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" *ngIf="customers.length > 0">
@@ -242,7 +242,7 @@ import { ApiService } from '../../services/api.service';
               <div>
                 <div class="flex justify-between items-center mb-2">
                   <label class="block text-sm font-medium text-gray-700">Items *</label>
-                  <button type="button" (click)="addItem()" class="text-emerald-600 hover:text-emerald-700 text-sm font-medium">+ Add Item</button>
+                  <button type="button" (click)="addItem()" class="text-blue-600 hover:text-blue-700 text-sm font-medium">+ Add Item</button>
                 </div>
                 <div class="space-y-3">
                   <div *ngFor="let item of saleForm.items; let i = index" class="border rounded-lg p-3 bg-gray-50 relative">
@@ -323,7 +323,7 @@ import { ApiService } from '../../services/api.service';
             </div>
 
             <div class="flex gap-3 mt-6">
-              <button type="submit" class="flex-1 bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700 font-medium">Save</button>
+              <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium">Save</button>
               <button type="button" (click)="showSaleModal=false" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 font-medium">Cancel</button>
             </div>
           </form>
@@ -362,7 +362,7 @@ import { ApiService } from '../../services/api.service';
               </div>
             </div>
             <div class="flex gap-3 mt-6">
-              <button type="submit" class="flex-1 bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700 font-medium">Save</button>
+              <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium">Save</button>
               <button type="button" (click)="showCustomerModal=false" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 font-medium">Cancel</button>
             </div>
           </form>

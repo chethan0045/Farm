@@ -25,7 +25,7 @@ interface Sensor {
         <div class="flex flex-wrap gap-2">
           <button *ngFor="let h of houses" (click)="selectHouse(h.houseNumber)"
             class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium border transition"
-            [ngClass]="selectedHouse === h.houseNumber ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white/5 text-slate-300 border-cyan-900/40 hover:border-cyan-400'">
+            [ngClass]="selectedHouse === h.houseNumber ? 'bg-blue-600 text-white border-blue-600' : 'bg-white/5 text-slate-300 border-cyan-900/40 hover:border-cyan-400'">
             <span class="ctrl-led" [ngClass]="h.onlineCount > 0 ? 'ctrl-led-on' : 'ctrl-led-off'"></span>
             House {{ h.houseNumber }}
           </button>
@@ -132,7 +132,7 @@ interface Sensor {
         <h3 class="text-xs font-bold text-gray-500 uppercase mb-3 flex items-center gap-2"><span>🧭</span> Sensor placement plan ({{ sensors.length }})</h3>
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
           <button *ngFor="let s of sensors" (click)="selected = s"
-            class="flex items-center gap-2 p-2 rounded-lg border text-left hover:border-emerald-300 transition"
+            class="flex items-center gap-2 p-2 rounded-lg border text-left hover:border-blue-300 transition"
             [class.border-gray-200]="status(s)!=='alarm'" [class.border-red-300]="status(s)==='alarm'" [class.bg-red-50]="status(s)==='alarm'">
             <span class="ctrl-led shrink-0" [ngClass]="ledClass(s)"></span>
             <span class="text-base">{{ s.icon }}</span>

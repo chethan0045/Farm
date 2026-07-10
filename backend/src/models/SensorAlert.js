@@ -17,10 +17,14 @@ const sensorAlertSchema = new mongoose.Schema({
   isRead: { type: Boolean, default: false },
   isResolved: { type: Boolean, default: false },
   resolvedAt: { type: Date },
-  resolvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+  resolvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  // Escalation state (escalationLevel, lastEscalatedAt, notificationsSent).
+  // Without this field the schema strips alertEscalation's writes and every
+  // unresolved alert re-escalates on each checker run.
+  data: { type: mongoose.Schema.Types.Mixed }
 }, { timestamps: true });
 
-sensorAlertSchema.index({ houseNumber: 1, isResolved: false });
+sensorAlertSchema.index({ houseNumber: 1, type: 1, isResolved: 1 });
 sensorAlertSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model('SensorAlert', sensorAlertSchema);

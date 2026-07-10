@@ -6,7 +6,7 @@ const SensorAlert = require('../models/SensorAlert');
 router.use(authenticate);
 
 // GET /api/sensor-alerts - List sensor alerts
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
   try {
     const filter = {};
     if (req.query.houseNumber) filter.houseNumber = req.query.houseNumber;
@@ -22,53 +22,53 @@ router.get('/', async (req, res) => {
 
     res.json(alerts);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
 // GET /api/sensor-alerts/unread-count
-router.get('/unread-count', async (req, res) => {
+router.get('/unread-count', async (req, res, next) => {
   try {
     const count = await SensorAlert.countDocuments({ isRead: false, isResolved: false });
     res.json({ count });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
 // PUT /api/sensor-alerts/:id/read
-router.put('/:id/read', async (req, res) => {
+router.put('/:id/read', async (req, res, next) => {
   try {
     const alert = await SensorAlert.findByIdAndUpdate(req.params.id, { isRead: true }, { new: true });
     if (!alert) return res.status(404).json({ error: 'Alert not found' });
     res.json(alert);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
 // PUT /api/sensor-alerts/:id/resolve
-router.put('/:id/resolve', async (req, res) => {
+router.put('/:id/resolve', async (req, res, next) => {
   try {
     const alert = await SensorAlert.findByIdAndUpdate(
       req.params.id,
-      { isResolved: true, resolvedAt: new Date(), resolvedBy: req.user._id },
+      { isResolved: true, resolvedAt: new Date(), resolvedBy: req.user.id },
       { new: true }
     );
     if (!alert) return res.status(404).json({ error: 'Alert not found' });
     res.json(alert);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
 // PUT /api/sensor-alerts/read-all
-router.put('/read-all', async (req, res) => {
+router.put('/read-all', async (req, res, next) => {
   try {
     await SensorAlert.updateMany({ isRead: false }, { isRead: true });
     res.json({ message: 'All sensor alerts marked as read' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 

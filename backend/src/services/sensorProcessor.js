@@ -4,7 +4,11 @@ const Batch = require('../models/Batch');
 const { getOptimalRanges } = require('./breedStandards');
 const { evaluate: evaluateAutomation } = require('./automationEngine');
 
-async function processSensorData(device, reading) {
+// options.react=false persists the reading but skips threshold alerts and
+// automation — used for bulk-replayed offline readings, where firing relays
+// or alerts for hours-old conditions would act on stale data.
+async function processSensorData(device, reading, options = {}) {
+  const { react = true } = options;
   // Save sensor data
   const sensorData = await SensorData.create({
     device: device._id,
@@ -29,7 +33,9 @@ async function processSensorData(device, reading) {
     freeHeapBytes: reading.freeHeapBytes
   });
 
-  // Find active batch for this house
+  if (!react) return sensorData;
+
+  // Find active batch for this house (shared with automation below)
   const batch = await Batch.findOne({ houseNumber: device.houseNumber, status: 'active' });
   const birdAgeDays = batch ? batch.dayCount || 1 : 21; // default mid-range if no batch
   const optimal = getOptimalRanges(birdAgeDays);
@@ -38,7 +44,7 @@ async function processSensorData(device, reading) {
   await checkThresholds(device, reading, batch, optimal);
 
   // Evaluate automation rules
-  await evaluateAutomation(device.houseNumber, reading);
+  await evaluateAutomation(device.houseNumber, reading, batch);
 
   return sensorData;
 }
@@ -175,23 +181,29 @@ async function checkThresholds(device, reading, batch, optimal) {
     }
   }
 
-  // Create alerts with deduplication (no duplicate unresolved alert of same type for same house in 30 min)
-  for (const alertData of alerts) {
-    const existing = await SensorAlert.findOne({
-      houseNumber: device.houseNumber,
-      type: alertData.type,
-      isResolved: false,
-      createdAt: { $gte: thirtyMinAgo }
-    });
+  // Create alerts with deduplication (no duplicate unresolved alert of same
+  // type for same house in 30 min) — one query for all types instead of one per alert
+  if (alerts.length === 0) return;
 
-    if (!existing) {
-      await SensorAlert.create({
-        houseNumber: device.houseNumber,
-        device: device._id,
-        batch: batch?._id,
-        ...alertData
-      });
-    }
+  const existing = await SensorAlert.find({
+    houseNumber: device.houseNumber,
+    type: { $in: alerts.map(a => a.type) },
+    isResolved: false,
+    createdAt: { $gte: thirtyMinAgo }
+  }).select('type').lean();
+  const existingTypes = new Set(existing.map(e => e.type));
+
+  const toCreate = alerts
+    .filter(a => !existingTypes.has(a.type))
+    .map(a => ({
+      houseNumber: device.houseNumber,
+      device: device._id,
+      batch: batch?._id,
+      ...a
+    }));
+
+  if (toCreate.length > 0) {
+    await SensorAlert.insertMany(toCreate);
   }
 }
 

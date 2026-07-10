@@ -216,7 +216,7 @@ import { ApiService } from '../../services/api.service';
               </div>
             </div>
             <div class="flex gap-3 mt-6">
-              <button type="submit" class="flex-1 bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700 font-medium">Save</button>
+              <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium">Save</button>
               <button type="button" (click)="showModal=false" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 font-medium">Cancel</button>
             </div>
           </form>
@@ -299,7 +299,7 @@ export class DailyLogsComponent implements OnInit {
     const obs = this.editing ? this.api.updateDailyLog(this.editId, this.form) : this.api.createDailyLog(this.form);
     obs.subscribe({
       next: () => { this.showModal = false; this.loadLogs(); this.loadAnalytics(); this.api.getBatches({ status: 'active' }).subscribe({ next: (b) => this.batches = b }); },
-      error: (err) => alert(err.error?.error || 'Error saving log')
+      error: () => {} // failure feedback comes from the global error toast interceptor
     });
   }
 

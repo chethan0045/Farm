@@ -14,4 +14,8 @@ const vaccinationSchema = new mongoose.Schema({
   notes: { type: String }
 }, { timestamps: true });
 
+// Due-vaccine scans (alertGenerator hourly) and per-batch upcoming lookups
+vaccinationSchema.index({ status: 1, scheduledDate: 1 });
+vaccinationSchema.index({ batch: 1, status: 1, scheduledDate: 1 });
+
 module.exports = mongoose.model('Vaccination', vaccinationSchema);

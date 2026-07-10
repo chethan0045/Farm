@@ -16,10 +16,10 @@ import { ApiService } from '../../services/api.service';
           <p class="text-sm ctrl-sub">Configure sensor-based automation triggers</p>
         </div>
         <div class="flex gap-2">
-          <button (click)="showPresets = true" class="border border-emerald-600 text-emerald-600 px-4 py-2 rounded-lg text-sm hover:bg-emerald-50">
+          <button (click)="showPresets = true" class="border border-blue-600 text-blue-600 px-4 py-2 rounded-lg text-sm hover:bg-blue-50">
             Load Presets
           </button>
-          <button (click)="showForm = true; resetForm()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-emerald-700">
+          <button (click)="showForm = true; resetForm()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700">
             + New Rule
           </button>
         </div>
@@ -35,7 +35,7 @@ import { ApiService } from '../../services/api.service';
                 <p class="text-sm font-medium">{{ preset.name }}</p>
                 <p class="text-xs text-gray-500">{{ preset.description }}</p>
               </div>
-              <button (click)="createFromPreset(preset)" class="text-xs bg-emerald-600 text-white px-3 py-1 rounded hover:bg-emerald-700">Add</button>
+              <button (click)="createFromPreset(preset)" class="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">Add</button>
             </div>
           </div>
           <button (click)="showPresets = false" class="mt-4 w-full text-center text-sm text-gray-500 hover:text-gray-700">Close</button>
@@ -81,7 +81,7 @@ import { ApiService } from '../../services/api.service';
                 <button (click)="form.conditions.splice(i, 1)" class="text-red-500 text-xs">X</button>
               </div>
               <button (click)="form.conditions.push({sensor: 'temperature', operator: 'gt', value: 30})"
-                class="text-xs text-emerald-600 hover:underline">+ Add Condition</button>
+                class="text-xs text-blue-600 hover:underline">+ Add Condition</button>
             </div>
 
             <!-- Action -->
@@ -123,7 +123,7 @@ import { ApiService } from '../../services/api.service';
           </div>
           <div class="flex justify-end gap-2 mt-4">
             <button (click)="showForm = false" class="px-4 py-2 border rounded-lg text-sm">Cancel</button>
-            <button (click)="saveRule()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm hover:bg-emerald-700">Save</button>
+            <button (click)="saveRule()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">Save</button>
           </div>
         </div>
       </div>

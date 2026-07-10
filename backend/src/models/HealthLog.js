@@ -17,4 +17,8 @@ const healthLogSchema = new mongoose.Schema({
   notes: { type: String }
 }, { timestamps: true });
 
+// Unresolved-issue lookups (recommendations) and recent-disease scans (AI risk)
+healthLogSchema.index({ batch: 1, resolved: 1 });
+healthLogSchema.index({ batch: 1, type: 1, date: -1 });
+
 module.exports = mongoose.model('HealthLog', healthLogSchema);

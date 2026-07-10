@@ -60,7 +60,7 @@ import { ApiService } from '../../services/api.service';
             *ngFor="let f of filterOptions"
             (click)="selectedFilter = f.value; applyFilter()"
             [class]="selectedFilter === f.value
-              ? 'px-3 py-1.5 rounded-lg text-sm font-medium bg-emerald-600 text-white'
+              ? 'px-3 py-1.5 rounded-lg text-sm font-medium bg-blue-600 text-white'
               : 'px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200'"
             class="transition-colors">
             {{ f.label }}

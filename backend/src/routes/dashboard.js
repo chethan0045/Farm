@@ -9,7 +9,7 @@ const { authenticate } = require('../middleware/auth');
 const router = express.Router();
 router.use(authenticate);
 
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
   try {
     const activeBatches = await Batch.find({ status: 'active' }).sort({ createdAt: -1 });
 
@@ -99,7 +99,7 @@ router.get('/', async (req, res) => {
       }
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 

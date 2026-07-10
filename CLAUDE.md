@@ -147,6 +147,7 @@ farm_manager/
 - **Supported Sensors**: temperature, humidity, ammoniaPPM, co2PPM, lightIntensity, feedLevelPercent, waterLevelPercent
 - **Actions**: controlRelay, sendAlert, or both
 - **Cooldowns**: Prevent rapid toggling (configurable per rule)
+- **Hysteresis (auto-off)**: `autoOff: { enabled, margin }` on a rule turns the relay back OFF once the first condition clears by `margin` (fan ON at >32°C turns OFF at ≤30°C with margin 2). Runs even during cooldown. Engaged state is tracked via `relayEngaged`.
 - **Manual Override**: Temporarily disable rules with expiration
 - **Preset Templates**: Common rules (high temp, ammonia, humidity, feed/water levels)
 
@@ -240,10 +241,26 @@ cd backend && npm install && npm run dev
 cd frontend && npm install && ng serve
 ```
 
+## Testing
+```bash
+cd backend && npm test   # jest + supertest + mongodb-memory-server
+```
+- Tests live in `backend/tests/` and run against an in-memory MongoDB (never the real DB).
+- `src/app.js` assembles the Express app (importable by tests); `src/index.js` connects the DB, starts the server and schedulers.
+- The mongod test binary is pinned to 7.0.24 in `tests/db-setup.js` (8.x needs extra VC++ DLLs on Windows).
+- Windows note: mongodb-memory-server needs the VC++ 2015+ x64 redistributable (`winget install Microsoft.VCRedist.2015+.x64`). Without it, mongod exits with 0xC0000135; as a stopgap the three `vcruntime140*/msvcp140` DLLs can be copied beside the mongod exe in `node_modules/.cache/mongodb-memory-server/` (lost on reinstall — install the redist for a durable fix).
+
+## Security Model
+- **Single-tenant by design**: one farm, models have no per-user ownership. Public registration is closed — the first account can always be created (bootstrap), after that set `ALLOW_REGISTRATION=true` to open it temporarily.
+- `MONGODB_URI` and `JWT_SECRET` are REQUIRED — the server refuses to boot without them (no fallbacks).
+- Login/register are rate-limited (10 failed attempts / 15 min / IP). All input is sanitized against MongoDB operator injection (express-mongo-sanitize). helmet is enabled (CSP off for the inline SW registration script).
+
 ## Environment Variables (Backend)
 - `PORT` - Server port (default: 5000)
-- `MONGODB_URI` - MongoDB connection string
-- `JWT_SECRET` - JWT signing secret
+- `MONGODB_URI` - MongoDB connection string (REQUIRED)
+- `JWT_SECRET` - JWT signing secret (REQUIRED)
+- `ALLOW_REGISTRATION` - 'true' opens public registration (default: closed after first user)
+- `AUTOMATION_EVAL_INTERVAL_MIN` - Automation supplement pass interval (default: 5)
 - `FRONTEND_URL` - Frontend URL for CORS
 - `DEVICE_RATE_LIMIT_PER_MIN` - Sensor endpoint rate limit (default: 120)
 - `AI_ANALYSIS_INTERVAL_HOURS` - AI analysis frequency (default: 6)
@@ -270,5 +287,7 @@ cd backend && npm start
 POST /api/sensor-data
 Headers: X-API-Key: <64-char-hex>
 Body: { temperature, humidity, ammoniaPPM, co2PPM, feedLevelPercent, waterLevelPercent }
-Response: { status: "ok", serverTime: "...", pendingCommand: { relay, action, value } | null }
+Response: { status: "ok", serverTime: "...", pendingCommand: { commandId, relay, action, value } | null }
+Acks must echo commandId: POST /api/device-control/ack { commandId, success, errorMessage? }
+Unacked commands expire after 5 minutes; new commands are rejected (409) while one is pending.
 ```

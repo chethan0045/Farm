@@ -11,7 +11,7 @@ import { ApiService } from '../../services/api.service';
     <div>
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl ctrl-title">Finance</h2>
-        <button (click)="openModal()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition text-sm font-medium">+ Add Record</button>
+        <button (click)="openModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium">+ Add Record</button>
       </div>
 
       <!-- Summary -->
@@ -34,7 +34,7 @@ import { ApiService } from '../../services/api.service';
 
       <!-- Filter -->
       <div class="mb-4 flex gap-2">
-        <button (click)="filterType=''; loadRecords()" [class.bg-emerald-600]="filterType===''" [class.text-white]="filterType===''"
+        <button (click)="filterType=''; loadRecords()" [class.bg-blue-600]="filterType===''" [class.text-white]="filterType===''"
           class="px-4 py-1.5 rounded-lg text-sm border font-medium">All</button>
         <button (click)="filterType='income'; loadRecords()" [class.bg-green-600]="filterType==='income'" [class.text-white]="filterType==='income'"
           class="px-4 py-1.5 rounded-lg text-sm border font-medium">Income</button>
@@ -125,7 +125,7 @@ import { ApiService } from '../../services/api.service';
               </div>
             </div>
             <div class="flex gap-3 mt-6">
-              <button type="submit" class="flex-1 bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700 font-medium">Save</button>
+              <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium">Save</button>
               <button type="button" (click)="showModal=false" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 font-medium">Cancel</button>
             </div>
           </form>

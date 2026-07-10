@@ -22,4 +22,11 @@ const aiRateLimit = rateLimit({
   message: { error: 'Too many AI requests, please wait' }
 });
 
-module.exports = { sensorRateLimit, controlRateLimit, aiRateLimit };
+const authRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: 'Too many login attempts, please try again later' },
+  skipSuccessfulRequests: true
+});
+
+module.exports = { sensorRateLimit, controlRateLimit, aiRateLimit, authRateLimit };

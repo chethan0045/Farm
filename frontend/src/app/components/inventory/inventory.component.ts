@@ -55,14 +55,14 @@ import { ApiService } from '../../services/api.service';
       <div class="flex flex-wrap gap-2 mb-4">
         <button (click)="filterCategory = ''; loadItems()"
           class="px-3 py-1.5 rounded-full text-sm font-medium transition"
-          [class.bg-emerald-600]="!filterCategory" [class.text-white]="!filterCategory"
+          [class.bg-blue-600]="!filterCategory" [class.text-white]="!filterCategory"
           [class.bg-gray-100]="filterCategory" [class.text-gray-600]="filterCategory"
           [class.hover:bg-gray-200]="filterCategory">
           All
         </button>
         <button *ngFor="let cat of categories" (click)="filterCategory = cat; loadItems()"
           class="px-3 py-1.5 rounded-full text-sm font-medium transition capitalize"
-          [class.bg-emerald-600]="filterCategory === cat" [class.text-white]="filterCategory === cat"
+          [class.bg-blue-600]="filterCategory === cat" [class.text-white]="filterCategory === cat"
           [class.bg-gray-100]="filterCategory !== cat" [class.text-gray-600]="filterCategory !== cat"
           [class.hover:bg-gray-200]="filterCategory !== cat">
           {{ cat }}
@@ -143,7 +143,7 @@ import { ApiService } from '../../services/api.service';
       <div *ngIf="!loading && filteredItems.length === 0" class="ctrl-card text-center py-14 px-4 mb-6">
         <div class="text-5xl mb-3">📦</div>
         <p class="text-gray-500 mb-4">{{ filterCategory ? 'No items in this category.' : 'No inventory items yet. Add your first item!' }}</p>
-        <button (click)="openItemModal()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition text-sm font-medium">+ Add Item</button>
+        <button (click)="openItemModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium">+ Add Item</button>
       </div>
 
       <!-- Transaction Panel -->
@@ -154,7 +154,7 @@ import { ApiService } from '../../services/api.service';
             <p class="text-sm text-gray-500">Current stock: <span class="font-semibold" [class.text-red-600]="isLowStock(selectedItem)">{{ selectedItem.currentStock }} {{ selectedItem.unit }}</span></p>
           </div>
           <div class="flex gap-2">
-            <button (click)="openTransactionModal()" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-700 transition text-sm font-medium">+ Add Transaction</button>
+            <button (click)="openTransactionModal()" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition text-sm font-medium">+ Add Transaction</button>
             <button (click)="selectedItem = null; transactions = []" class="bg-gray-200 text-gray-600 px-3 py-1.5 rounded-lg hover:bg-gray-300 transition text-sm font-medium">Close</button>
           </div>
         </div>
@@ -210,14 +210,14 @@ import { ApiService } from '../../services/api.service';
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Name *</label>
                 <input [(ngModel)]="itemForm.name" name="name" required
-                  class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                  class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                   placeholder="e.g., Starter Feed">
               </div>
               <div class="grid grid-cols-2 gap-3">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Category *</label>
                   <select [(ngModel)]="itemForm.category" name="category" required
-                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none">
+                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
                     <option value="">Select</option>
                     <option *ngFor="let cat of categories" [value]="cat">{{ cat | titlecase }}</option>
                   </select>
@@ -225,7 +225,7 @@ import { ApiService } from '../../services/api.service';
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Unit *</label>
                   <input [(ngModel)]="itemForm.unit" name="unit" required
-                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                     placeholder="e.g., kg, liters, pcs">
                 </div>
               </div>
@@ -233,47 +233,47 @@ import { ApiService } from '../../services/api.service';
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Current Stock *</label>
                   <input type="number" [(ngModel)]="itemForm.currentStock" name="currentStock" required min="0"
-                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none">
+                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Min Stock Level *</label>
                   <input type="number" [(ngModel)]="itemForm.minStockLevel" name="minStockLevel" required min="0"
-                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none">
+                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
                 </div>
               </div>
               <div class="grid grid-cols-2 gap-3">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Cost Per Unit</label>
                   <input type="number" [(ngModel)]="itemForm.costPerUnit" name="costPerUnit" min="0" step="0.01"
-                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none">
+                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
                   <input type="date" [(ngModel)]="itemForm.expiryDate" name="expiryDate"
-                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none">
+                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
                 </div>
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Supplier</label>
                 <input [(ngModel)]="itemForm.supplier" name="supplier"
-                  class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                  class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                   placeholder="Supplier name">
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
                 <input [(ngModel)]="itemForm.location" name="location"
-                  class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                  class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                   placeholder="e.g., Warehouse A, Shelf 3">
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
                 <textarea [(ngModel)]="itemForm.notes" name="notes" rows="2"
-                  class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                  class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                   placeholder="Additional notes..."></textarea>
               </div>
             </div>
             <div class="flex gap-3 mt-6">
-              <button type="submit" class="flex-1 bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700 font-medium">Save</button>
+              <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium">Save</button>
               <button type="button" (click)="showItemModal = false" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 font-medium">Cancel</button>
             </div>
           </form>
@@ -289,7 +289,7 @@ import { ApiService } from '../../services/api.service';
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Type *</label>
                 <select [(ngModel)]="txnForm.type" name="type" required
-                  class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none">
+                  class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
                   <option value="purchase">Purchase (adds stock)</option>
                   <option value="usage">Usage (reduces stock)</option>
                   <option value="adjustment">Adjustment</option>
@@ -300,18 +300,18 @@ import { ApiService } from '../../services/api.service';
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Quantity *</label>
                   <input type="number" [(ngModel)]="txnForm.quantity" name="quantity" required min="0.01" step="0.01"
-                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none">
+                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Date *</label>
                   <input type="date" [(ngModel)]="txnForm.date" name="date" required
-                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none">
+                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
                 </div>
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Batch (optional)</label>
                 <select [(ngModel)]="txnForm.batch" name="batch"
-                  class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none">
+                  class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
                   <option value="">No batch</option>
                   <option *ngFor="let b of batches" [value]="b._id">{{ b.batchNumber }}</option>
                 </select>
@@ -319,18 +319,18 @@ import { ApiService } from '../../services/api.service';
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Cost</label>
                 <input type="number" [(ngModel)]="txnForm.cost" name="cost" min="0" step="0.01"
-                  class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                  class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                   placeholder="Total cost for this transaction">
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
                 <textarea [(ngModel)]="txnForm.notes" name="notes" rows="2"
-                  class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                  class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                   placeholder="Additional details..."></textarea>
               </div>
             </div>
             <div class="flex gap-3 mt-6">
-              <button type="submit" class="flex-1 bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700 font-medium">Save</button>
+              <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium">Save</button>
               <button type="button" (click)="showTransactionModal = false" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 font-medium">Cancel</button>
             </div>
           </form>

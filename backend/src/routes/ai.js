@@ -10,7 +10,7 @@ const { generateRecommendations } = require('../services/recommendationEngine');
 router.use(authenticate);
 
 // GET /api/ai/insights - List insights with filters
-router.get('/insights', async (req, res) => {
+router.get('/insights', async (req, res, next) => {
   try {
     const filter = { isDismissed: false };
     if (req.query.batchId) filter.batch = req.query.batchId;
@@ -24,12 +24,12 @@ router.get('/insights', async (req, res) => {
 
     res.json(insights);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
 // GET /api/ai/insights/:batchId - Insights for a specific batch
-router.get('/insights/:batchId', async (req, res) => {
+router.get('/insights/:batchId', async (req, res, next) => {
   try {
     const insights = await AIInsight.find({
       batch: req.params.batchId,
@@ -38,12 +38,12 @@ router.get('/insights/:batchId', async (req, res) => {
 
     res.json(insights);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
 // POST /api/ai/analyze - Trigger manual analysis
-router.post('/analyze', aiRateLimit, async (req, res) => {
+router.post('/analyze', aiRateLimit, async (req, res, next) => {
   try {
     const { batchId, categories } = req.body;
 
@@ -66,23 +66,32 @@ router.post('/analyze', aiRateLimit, async (req, res) => {
       res.json({ message: `Analysis complete for ${results.length} batches`, results });
     }
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
 // GET /api/ai/recommendations/:batchId - Actionable recommendations
-router.get('/recommendations/:batchId', async (req, res) => {
+router.get('/recommendations/:batchId', async (req, res, next) => {
   try {
     const recommendations = await generateRecommendations(req.params.batchId);
     res.json(recommendations);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
 // GET /api/ai/dashboard - AI summary for main dashboard
-router.get('/dashboard', async (req, res) => {
+// Recomputing the full analysis for every active batch on each hit is
+// expensive (several queries + an aggregation per batch); the inputs only
+// change with new daily logs/sensor sweeps, so a short cache is safe.
+let dashboardCache = { at: 0, data: null };
+const DASHBOARD_TTL_MS = 60 * 1000;
+
+router.get('/dashboard', async (req, res, next) => {
   try {
+    if (dashboardCache.data && Date.now() - dashboardCache.at < DASHBOARD_TTL_MS) {
+      return res.json(dashboardCache.data);
+    }
     const batches = await Batch.find({ status: 'active' });
     const batchMetrics = [];
 
@@ -123,7 +132,7 @@ router.get('/dashboard', async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(10);
 
-    res.json({
+    const payload = {
       batchMetrics,
       recommendations: allRecommendations.slice(0, 10),
       recentInsights,
@@ -132,14 +141,16 @@ router.get('/dashboard', async (req, res) => {
         highRiskBatches: batchMetrics.filter(b => b.diseaseRiskScore > 50).length,
         totalRecommendations: allRecommendations.length
       }
-    });
+    };
+    dashboardCache = { at: Date.now(), data: payload };
+    res.json(payload);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
 // PUT /api/ai/insights/:id/dismiss - Dismiss an insight
-router.put('/insights/:id/dismiss', async (req, res) => {
+router.put('/insights/:id/dismiss', async (req, res, next) => {
   try {
     const insight = await AIInsight.findByIdAndUpdate(
       req.params.id,
@@ -149,12 +160,12 @@ router.put('/insights/:id/dismiss', async (req, res) => {
     if (!insight) return res.status(404).json({ error: 'Insight not found' });
     res.json(insight);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
 // PUT /api/ai/insights/:id/read - Mark insight as read
-router.put('/insights/:id/read', async (req, res) => {
+router.put('/insights/:id/read', async (req, res, next) => {
   try {
     const insight = await AIInsight.findByIdAndUpdate(
       req.params.id,
@@ -164,7 +175,7 @@ router.put('/insights/:id/read', async (req, res) => {
     if (!insight) return res.status(404).json({ error: 'Insight not found' });
     res.json(insight);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 

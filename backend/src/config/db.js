@@ -1,8 +1,12 @@
 const mongoose = require('mongoose');
 
 const connectDB = async () => {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    console.error('FATAL: MONGODB_URI environment variable is not set. Refusing to start.');
+    process.exit(1);
+  }
   try {
-    const uri = process.env.MONGODB_URI || 'mongodb+srv://todoUser:chethan45@cluster0.etbmi2g.mongodb.net/farm_management?appName=Cluster0';
     const conn = await mongoose.connect(uri);
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {

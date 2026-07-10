@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const AutomationRule = require('../models/AutomationRule');
 const DeviceControl = require('../models/DeviceControl');
 const SensorAlert = require('../models/SensorAlert');
@@ -38,7 +39,9 @@ async function checkSustained(houseNumber, condition, seconds) {
   });
 }
 
-async function evaluate(houseNumber, sensorReading) {
+// knownBatch: pass the already-loaded active batch (or null) to skip the
+// lookup — the sensor ingest path resolves it right before calling this.
+async function evaluate(houseNumber, sensorReading, knownBatch) {
   try {
     // Load active rules for this house + global rules
     const rules = await AutomationRule.find({
@@ -52,7 +55,9 @@ async function evaluate(houseNumber, sensorReading) {
     }).sort({ priority: -1 });
 
     const now = new Date();
-    const batch = await Batch.findOne({ houseNumber, status: 'active' });
+    const batch = knownBatch !== undefined
+      ? knownBatch
+      : await Batch.findOne({ houseNumber, status: 'active' });
 
     for (const rule of rules) {
       // Check manual override
@@ -62,12 +67,6 @@ async function evaluate(houseNumber, sensorReading) {
         // Override expired, clear it
         rule.overrideActive = false;
         await rule.save();
-      }
-
-      // Check cooldown
-      if (rule.lastTriggeredAt) {
-        const cooldownEnd = new Date(rule.lastTriggeredAt.getTime() + rule.cooldownMinutes * 60 * 1000);
-        if (now < cooldownEnd) continue;
       }
 
       // Evaluate conditions
@@ -104,7 +103,19 @@ async function evaluate(houseNumber, sensorReading) {
         }
       }
 
-      if (!conditionsMet) continue;
+      if (!conditionsMet) {
+        // Hysteresis: release an engaged relay once the condition has cleared
+        // by the configured margin. Runs even during cooldown — cooldown
+        // throttles re-triggering, it must never keep equipment running.
+        await maybeAutoOff(rule, houseNumber, sensorReading);
+        continue;
+      }
+
+      // Check cooldown (after condition evaluation so auto-off above still runs)
+      if (rule.lastTriggeredAt) {
+        const cooldownEnd = new Date(rule.lastTriggeredAt.getTime() + rule.cooldownMinutes * 60 * 1000);
+        if (now < cooldownEnd) continue;
+      }
 
       // Execute actions
       const actionType = rule.action.type;
@@ -118,30 +129,45 @@ async function evaluate(houseNumber, sensorReading) {
           });
 
           if (device) {
-            await DeviceControl.findOneAndUpdate(
-              { device: device._id },
-              {
-                device: device._id,
-                houseNumber,
-                [`relays.${rule.action.relay}.state`]: rule.action.relayState !== false,
-                ...(rule.action.relayValue != null && rule.action.relay === 'fan'
-                  ? { [`relays.fan.speed`]: rule.action.relayValue }
-                  : {}),
-                ...(rule.action.relayValue != null && rule.action.relay === 'light'
-                  ? { [`relays.light.brightness`]: rule.action.relayValue }
-                  : {}),
-                lastChangedBy: 'automation',
-                lastChangedByRule: rule._id,
-                pendingCommand: {
-                  relay: rule.action.relay,
-                  action: rule.action.relayState !== false,
-                  value: rule.action.relayValue,
-                  issuedAt: now,
-                  acknowledged: false
-                }
-              },
-              { upsert: true, new: true }
-            );
+            // Don't stomp an unacked command (e.g. a manual one) that hasn't
+            // expired yet — the duplicate-key error from the upsert against
+            // the slot-free filter signals the slot is busy; skip this cycle,
+            // the rule will retry on the next reading.
+            try {
+              await DeviceControl.findOneAndUpdate(
+                { device: device._id, ...DeviceControl.commandSlotFree() },
+                {
+                  device: device._id,
+                  houseNumber,
+                  [`relays.${rule.action.relay}.state`]: rule.action.relayState !== false,
+                  ...(rule.action.relayValue != null && rule.action.relay === 'fan'
+                    ? { [`relays.fan.speed`]: rule.action.relayValue }
+                    : {}),
+                  ...(rule.action.relayValue != null && rule.action.relay === 'light'
+                    ? { [`relays.light.brightness`]: rule.action.relayValue }
+                    : {}),
+                  lastChangedBy: 'automation',
+                  lastChangedByRule: rule._id,
+                  pendingCommand: {
+                    commandId: crypto.randomBytes(8).toString('hex'),
+                    relay: rule.action.relay,
+                    action: rule.action.relayState !== false,
+                    value: rule.action.relayValue,
+                    issuedAt: now,
+                    acknowledged: false
+                  }
+                },
+                { upsert: true, new: true }
+              );
+              // Remember the relay is ours to release when the condition clears
+              if (rule.action.relayState !== false) rule.relayEngaged = true;
+            } catch (err) {
+              if (err.code === 11000) {
+                console.log(`[Automation Engine] Rule "${rule.name}": device ${device.deviceId || device._id} has an unacked pending command, skipping relay write`);
+                continue;
+              }
+              throw err;
+            }
           }
         }
       }
@@ -176,7 +202,70 @@ async function evaluate(houseNumber, sensorReading) {
   }
 }
 
-// Evaluate all active houses (scheduled supplement)
+// Turn a rule's relay back OFF once its first condition has cleared by the
+// configured margin (hysteresis). relayEngaged stays true if the OFF command
+// can't be written yet (pending-command slot busy) so it retries next reading.
+async function maybeAutoOff(rule, houseNumber, reading) {
+  if (!rule.autoOff?.enabled || !rule.relayEngaged) return;
+  if (!rule.action?.relay || rule.action.relayState === false) return;
+
+  const cond = rule.conditions[0];
+  if (!cond) return;
+  const val = getSensorValue(cond.sensor, reading);
+  if (val == null) return;
+
+  const margin = rule.autoOff.margin || 0;
+  let cleared = false;
+  switch (cond.operator) {
+    case 'gt': case 'gte': cleared = val <= cond.value - margin; break;
+    case 'lt': case 'lte': cleared = val >= cond.value + margin; break;
+    default: return; // 'eq' has no clearing direction
+  }
+  if (!cleared) return;
+
+  const device = await Device.findOne({
+    houseNumber,
+    isActive: true,
+    capabilities: `relay_${rule.action.relay}`
+  });
+  if (!device) return;
+
+  try {
+    await DeviceControl.findOneAndUpdate(
+      { device: device._id, ...DeviceControl.commandSlotFree() },
+      {
+        device: device._id,
+        houseNumber,
+        [`relays.${rule.action.relay}.state`]: false,
+        lastChangedBy: 'automation',
+        lastChangedByRule: rule._id,
+        pendingCommand: {
+          commandId: crypto.randomBytes(8).toString('hex'),
+          relay: rule.action.relay,
+          action: false,
+          value: null,
+          issuedAt: new Date(),
+          acknowledged: false
+        }
+      },
+      { upsert: true, new: true }
+    );
+  } catch (err) {
+    if (err.code === 11000) return; // slot busy — retry on the next reading
+    throw err;
+  }
+
+  rule.relayEngaged = false;
+  await rule.save();
+  console.log(`[Automation Engine] Rule "${rule.name}": condition cleared, ${rule.action.relay} auto-off issued for house ${houseNumber}`);
+}
+
+// Evaluate all active houses (scheduled supplement).
+// Only readings fresh enough to reflect current conditions are evaluated —
+// firing relays off a reading from a sensor that died hours ago is worse
+// than doing nothing.
+const SUPPLEMENT_MAX_READING_AGE_MS = 15 * 60 * 1000;
+
 async function evaluateAll() {
   try {
     const batches = await Batch.find({ status: 'active' });
@@ -185,14 +274,32 @@ async function evaluateAll() {
 
       const latest = await SensorData.findOne({ houseNumber: batch.houseNumber })
         .sort({ timestamp: -1 }).lean();
-      if (latest) {
-        await evaluate(batch.houseNumber, latest);
+      if (latest && (Date.now() - new Date(latest.timestamp).getTime()) < SUPPLEMENT_MAX_READING_AGE_MS) {
+        await evaluate(batch.houseNumber, latest, batch);
       }
     }
     console.log(`[Automation Engine] Scheduled evaluation complete at ${new Date().toISOString()}`);
   } catch (err) {
     console.error('[Automation Engine] Scheduled evaluation error:', err.message);
   }
+}
+
+// Supplement pass so rules with cooldowns or sustained conditions still
+// re-fire between sensor POSTs. The isRunning guard prevents overlap if a
+// pass outlives the interval.
+let evaluateAllRunning = false;
+function startAutomationScheduler() {
+  const intervalMin = parseInt(process.env.AUTOMATION_EVAL_INTERVAL_MIN) || 5;
+  setInterval(async () => {
+    if (evaluateAllRunning) return;
+    evaluateAllRunning = true;
+    try {
+      await evaluateAll();
+    } finally {
+      evaluateAllRunning = false;
+    }
+  }, intervalMin * 60 * 1000);
+  console.log(`[Automation Engine] Supplement scheduler started - runs every ${intervalMin} minutes`);
 }
 
 // Default rule presets
@@ -203,6 +310,7 @@ const RULE_PRESETS = [
     conditionLogic: 'AND',
     conditions: [{ sensor: 'temperature', operator: 'gt', value: 32 }],
     action: { type: 'both', relay: 'fan', relayState: true, relayValue: 80, alertSeverity: 'warning', alertMessage: 'High temperature detected. Fan activated.' },
+    autoOff: { enabled: true, margin: 2 },
     cooldownMinutes: 30, priority: 5
   },
   {
@@ -211,6 +319,7 @@ const RULE_PRESETS = [
     conditionLogic: 'AND',
     conditions: [{ sensor: 'temperature', operator: 'gt', value: 38 }],
     action: { type: 'both', relay: 'fan', relayState: true, relayValue: 100, alertSeverity: 'critical', alertMessage: 'CRITICAL: Temperature extremely high. All cooling activated.' },
+    autoOff: { enabled: true, margin: 2 },
     cooldownMinutes: 15, priority: 10
   },
   {
@@ -235,6 +344,7 @@ const RULE_PRESETS = [
     conditionLogic: 'AND',
     conditions: [{ sensor: 'humidity', operator: 'gt', value: 80 }],
     action: { type: 'both', relay: 'fan', relayState: true, relayValue: 70, alertSeverity: 'warning', alertMessage: 'High humidity. Exhaust fan activated.' },
+    autoOff: { enabled: true, margin: 5 },
     cooldownMinutes: 30, priority: 3
   },
   {
@@ -251,8 +361,9 @@ const RULE_PRESETS = [
     conditionLogic: 'AND',
     conditions: [{ sensor: 'waterLevelPercent', operator: 'lt', value: 20 }],
     action: { type: 'both', relay: 'waterPump', relayState: true, alertSeverity: 'warning', alertMessage: 'Water level low. Water pump activated.' },
+    autoOff: { enabled: true, margin: 40 }, // pump off once tank refills past 60%
     cooldownMinutes: 60, priority: 4
   }
 ];
 
-module.exports = { evaluate, evaluateAll, RULE_PRESETS };
+module.exports = { evaluate, evaluateAll, startAutomationScheduler, RULE_PRESETS };

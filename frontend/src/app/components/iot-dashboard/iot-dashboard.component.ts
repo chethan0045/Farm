@@ -2,7 +2,9 @@ import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { ApiService } from '../../services/api.service';
+import { SensorStore } from '../../services/sensor-store.service';
 
 @Component({
   selector: 'app-iot-dashboard',
@@ -18,7 +20,7 @@ import { ApiService } from '../../services/api.service';
         </div>
         <div class="flex gap-2">
           <span class="text-xs text-gray-400">Auto-refresh: {{ refreshInterval }}s</span>
-          <button (click)="loadData()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-emerald-700">Refresh</button>
+          <button (click)="loadData()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700">Refresh</button>
         </div>
       </div>
 
@@ -81,7 +83,7 @@ import { ApiService } from '../../services/api.service';
 
       <div *ngIf="houseOverview.length === 0" class="bg-white rounded-xl shadow-sm border p-8 text-center">
         <p class="text-gray-500 mb-2">No devices registered yet</p>
-        <a routerLink="/devices" class="text-emerald-600 hover:underline text-sm">Register your first device</a>
+        <a routerLink="/devices" class="text-blue-600 hover:underline text-sm">Register your first device</a>
       </div>
 
       <!-- Selected House History -->
@@ -93,7 +95,7 @@ import { ApiService } from '../../services/api.service';
             <option value="5min">5 min avg</option>
             <option value="hourly">Hourly avg</option>
           </select>
-          <a routerLink="/analytics" class="text-xs text-emerald-600 hover:underline font-medium">📈 View trend charts →</a>
+          <a routerLink="/analytics" class="text-xs text-blue-600 hover:underline font-medium">📈 View trend charts →</a>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
@@ -138,7 +140,7 @@ import { ApiService } from '../../services/api.service';
             <p class="text-xs text-gray-500">{{ alert.message }}</p>
             <p class="text-[10px] text-gray-400 mt-1">{{ alert.createdAt | date:'short' }}</p>
           </div>
-          <button *ngIf="!alert.isResolved" (click)="resolveAlert(alert._id)" class="text-xs text-emerald-600 hover:underline">Resolve</button>
+          <button *ngIf="!alert.isResolved" (click)="resolveAlert(alert._id)" class="text-xs text-blue-600 hover:underline">Resolve</button>
         </div>
       </div>
     </div>
@@ -152,15 +154,23 @@ export class IotDashboardComponent implements OnInit, OnDestroy {
   historyResolution = 'hourly';
   refreshInterval = 30;
   private timer: any;
+  private subs = new Subscription();
 
-  constructor(private api: ApiService, private cdr: ChangeDetectorRef) {}
+  constructor(private api: ApiService, private store: SensorStore, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
-    this.loadData();
-    this.timer = setInterval(() => this.loadData(), this.refreshInterval * 1000);
+    // House overview comes from the shared polling store; only the alert
+    // list keeps its own (cheap) refresh timer.
+    this.subs.add(this.store.deviceOverview$.subscribe(data => {
+      this.houseOverview = data || [];
+      this.cdr.detectChanges();
+    }));
+    this.loadAlerts();
+    this.timer = setInterval(() => this.loadAlerts(), this.refreshInterval * 1000);
   }
 
   ngOnDestroy() {
+    this.subs.unsubscribe();
     if (this.timer) clearInterval(this.timer);
   }
 
@@ -169,6 +179,10 @@ export class IotDashboardComponent implements OnInit, OnDestroy {
       next: (data) => { this.houseOverview = data; this.cdr.detectChanges(); },
       error: () => {}
     });
+    this.loadAlerts();
+  }
+
+  loadAlerts() {
     this.api.getSensorAlerts({ isResolved: 'false', limit: '10' }).subscribe({
       next: (data) => { this.sensorAlerts = data; this.cdr.detectChanges(); },
       error: () => {}

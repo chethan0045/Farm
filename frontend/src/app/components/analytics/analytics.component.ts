@@ -37,7 +37,7 @@ import { TrendChartComponent } from '../shared/trend-chart.component';
         <div class="text-4xl mb-2">📈</div>
         <p class="text-gray-600 font-medium mb-1">No sensor data yet</p>
         <p class="text-gray-400 text-sm mb-3">Register a device and start sending readings to see trends</p>
-        <a routerLink="/devices" class="text-emerald-600 hover:underline text-sm">Register a device →</a>
+        <a routerLink="/devices" class="text-blue-600 hover:underline text-sm">Register a device →</a>
       </div>
 
       <!-- No data for selected house -->

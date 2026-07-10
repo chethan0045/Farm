@@ -29,6 +29,17 @@ const automationRuleSchema = new mongoose.Schema({
   lastTriggeredAt: { type: Date },
   triggerCount: { type: Number, default: 0 },
 
+  // Hysteresis: when enabled and this rule has engaged its relay, the engine
+  // turns the relay back OFF once the first condition clears by `margin` in
+  // the opposite direction (fan ON at >32°C, OFF again at ≤30°C with margin 2).
+  // Without this, an ON-only rule leaves equipment running until someone
+  // notices, and symmetric ON/OFF rules flap on sensor noise at the threshold.
+  autoOff: {
+    enabled: { type: Boolean, default: false },
+    margin: { type: Number, default: 0, min: 0 }
+  },
+  relayEngaged: { type: Boolean, default: false },
+
   overrideActive: { type: Boolean, default: false },
   overrideUntil: { type: Date },
   overrideBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

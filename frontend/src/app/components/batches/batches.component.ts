@@ -11,7 +11,7 @@ import { ApiService } from '../../services/api.service';
     <div>
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl ctrl-title">Batches</h2>
-        <button (click)="openModal()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition text-sm font-medium">+ New Batch</button>
+        <button (click)="openModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium">+ New Batch</button>
       </div>
 
       <!-- Loading skeleton -->
@@ -101,7 +101,7 @@ import { ApiService } from '../../services/api.service';
         <div class="text-4xl mb-2">🐣</div>
         <p class="text-gray-600 font-medium mb-1">No batches yet</p>
         <p class="text-gray-400 text-sm mb-4">Add your first batch to start tracking</p>
-        <button (click)="openModal()" class="bg-emerald-600 text-white px-5 py-2.5 rounded-xl hover:bg-emerald-700 font-medium">+ New Batch</button>
+        <button (click)="openModal()" class="bg-blue-600 text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 font-medium">+ New Batch</button>
       </div>
 
       <!-- Modal -->
@@ -112,15 +112,15 @@ import { ApiService } from '../../services/api.service';
             <div class="space-y-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Batch Number *</label>
-                <input [(ngModel)]="form.batchNumber" name="batchNumber" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="e.g., B-001">
+                <input [(ngModel)]="form.batchNumber" name="batchNumber" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g., B-001">
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">No. of Chicks Arrived *</label>
-                <input type="number" [(ngModel)]="form.chicksArrived" name="chicksArrived" required min="1" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none">
+                <input type="number" [(ngModel)]="form.chicksArrived" name="chicksArrived" required min="1" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Arrival Date *</label>
-                <input type="date" [(ngModel)]="form.arrivalDate" name="arrivalDate" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none">
+                <input type="date" [(ngModel)]="form.arrivalDate" name="arrivalDate" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
               </div>
               <div class="grid grid-cols-2 gap-3">
                 <div>
@@ -168,7 +168,7 @@ import { ApiService } from '../../services/api.service';
               </div>
             </div>
             <div class="flex gap-3 mt-6">
-              <button type="submit" class="flex-1 bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700 font-medium">Save</button>
+              <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium">Save</button>
               <button type="button" (click)="showModal=false" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 font-medium">Cancel</button>
             </div>
           </form>

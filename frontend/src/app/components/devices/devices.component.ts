@@ -15,7 +15,7 @@ import { ApiService } from '../../services/api.service';
           <h1 class="text-2xl ctrl-title">Device Management</h1>
           <p class="text-sm ctrl-sub">Register and manage ESP32 IoT devices</p>
         </div>
-        <button (click)="showForm = true; resetForm()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-emerald-700">
+        <button (click)="showForm = true; resetForm()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700">
           + Register Device
         </button>
       </div>
@@ -61,7 +61,7 @@ import { ApiService } from '../../services/api.service';
           </div>
           <div class="flex justify-end gap-2 mt-4">
             <button (click)="showForm = false" class="px-4 py-2 border rounded-lg text-sm">Cancel</button>
-            <button (click)="saveDevice()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm hover:bg-emerald-700">
+            <button (click)="saveDevice()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">
               {{ editId ? 'Update' : 'Register' }}
             </button>
           </div>
@@ -76,7 +76,7 @@ import { ApiService } from '../../services/api.service';
           <div class="bg-gray-100 rounded-lg p-3 font-mono text-xs break-all">{{ newApiKey }}</div>
           <div class="flex justify-end gap-2 mt-4">
             <button (click)="copyApiKey()" class="px-4 py-2 border rounded-lg text-sm">Copy to Clipboard</button>
-            <button (click)="newApiKey = ''" class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm">I've Saved It</button>
+            <button (click)="newApiKey = ''" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm">I've Saved It</button>
           </div>
         </div>
       </div>
@@ -133,7 +133,7 @@ import { ApiService } from '../../services/api.service';
         <div class="text-4xl mb-2">📡</div>
         <p class="text-gray-600 font-medium mb-1">No devices registered</p>
         <p class="text-gray-400 text-sm mb-4">Add your first ESP32 sensor to start monitoring</p>
-        <button (click)="showForm = true; resetForm()" class="bg-emerald-600 text-white px-5 py-2.5 rounded-xl hover:bg-emerald-700 font-medium">+ Register Device</button>
+        <button (click)="showForm = true; resetForm()" class="bg-blue-600 text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 font-medium">+ Register Device</button>
       </div>
     </div>
   `

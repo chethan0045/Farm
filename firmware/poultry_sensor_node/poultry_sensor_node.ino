@@ -145,10 +145,13 @@ bool postReading(const Reading& r) {
     // Parse piggybacked relay command (optional)
     JsonDocument res;
     if (!deserializeJson(res, http.getString()) && !res["pendingCommand"].isNull()) {
+      const char* cmdId  = res["pendingCommand"]["commandId"];
       const char* relay  = res["pendingCommand"]["relay"];
       const char* action = res["pendingCommand"]["action"];
-      Serial.printf("Pending command: relay=%s action=%s\n", relay ? relay : "?", action ? action : "?");
+      Serial.printf("Pending command: id=%s relay=%s action=%s\n", cmdId ? cmdId : "?", relay ? relay : "?", action ? action : "?");
       // handleRelayCommand(relay, action, res["pendingCommand"]["value"]);
+      // After executing, POST /api/device-control/ack with {"commandId": cmdId, "success": true}
+      // — the commandId echo is required so a newer command can't be acked by mistake.
     }
   }
   http.end();

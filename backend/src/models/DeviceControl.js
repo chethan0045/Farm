@@ -17,14 +17,41 @@ const deviceControlSchema = new mongoose.Schema({
   lastChangedByRule: { type: mongoose.Schema.Types.ObjectId, ref: 'AutomationRule' },
 
   pendingCommand: {
+    commandId: { type: String },
     relay: { type: String },
     action: { type: Boolean },
     value: { type: Number },
     issuedAt: { type: Date },
     acknowledged: { type: Boolean, default: false },
-    acknowledgedAt: { type: Date }
+    acknowledgedAt: { type: Date },
+    success: { type: Boolean },
+    error: { type: String }
   }
 }, { timestamps: true });
+
+// An unacked command older than this is considered lost (device offline or
+// rebooted) and may be replaced by a new command.
+deviceControlSchema.statics.COMMAND_EXPIRY_MS = 5 * 60 * 1000;
+
+// A command is "active" (deliverable, and blocking new commands) only while
+// it is unacknowledged and not expired.
+deviceControlSchema.statics.isCommandActive = function (pendingCommand) {
+  if (!pendingCommand || !pendingCommand.relay || pendingCommand.acknowledged) return false;
+  if (!pendingCommand.issuedAt) return false;
+  return (Date.now() - new Date(pendingCommand.issuedAt).getTime()) < this.COMMAND_EXPIRY_MS;
+};
+
+// Query fragment matching docs whose pending command slot may be overwritten.
+deviceControlSchema.statics.commandSlotFree = function () {
+  return {
+    $or: [
+      { 'pendingCommand.relay': { $in: [null, ''] } },
+      { 'pendingCommand.relay': { $exists: false } },
+      { 'pendingCommand.acknowledged': true },
+      { 'pendingCommand.issuedAt': { $lt: new Date(Date.now() - this.COMMAND_EXPIRY_MS) } }
+    ]
+  };
+};
 
 deviceControlSchema.index({ device: 1 }, { unique: true });
 deviceControlSchema.index({ houseNumber: 1 });

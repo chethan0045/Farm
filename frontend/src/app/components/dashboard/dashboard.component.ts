@@ -11,45 +11,82 @@ import { HouseVizComponent } from '../climate-live/house-viz.component';
   template: `
     <div class="space-y-5">
       <!-- Header -->
-      <div class="flex items-center justify-between">
+      <div class="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <p class="ctrl-eyebrow">ABIS Control · Overview</p>
-          <h2 class="text-xl md:text-2xl ctrl-title">Dashboard</h2>
-          <p class="text-xs ctrl-sub font-mono">{{ today | date:'EEEE, MMM d, y' }}</p>
+          <h2 class="text-2xl md:text-[28px] ctrl-title">Dashboard</h2>
+          <p class="text-sm ctrl-sub mt-0.5">Overview of your farm</p>
         </div>
-        <button (click)="loadDashboard()" [disabled]="loading" class="ctrl-btn-ghost disabled:opacity-50">
-          <span [class.animate-spin]="loading">↻</span> Refresh
-        </button>
+        <div class="flex items-center gap-2">
+          <span class="hidden sm:inline-flex items-center gap-2 ctrl-btn-ghost cursor-default">
+            <span>📅</span> {{ today | date:'MMM d, y' }}
+          </span>
+          <button (click)="loadDashboard()" [disabled]="loading" class="ctrl-btn-ghost disabled:opacity-50">
+            <span [class.animate-spin]="loading">↻</span> Refresh
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI stat cards -->
+      <div *ngIf="data" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+        <div class="ctrl-card kpi-tile p-4">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center text-[17px]">🐔</div>
+            <span class="text-[13px] font-medium text-slate-500">Active Batches</span>
+          </div>
+          <p class="text-[26px] font-extrabold text-slate-900 mt-2 ctrl-readout">{{ data.activeBatchCount }}</p>
+          <p class="text-[11.5px] text-slate-400 mt-0.5">running now</p>
+        </div>
+        <div class="ctrl-card kpi-tile p-4">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center text-[17px]">🐥</div>
+            <span class="text-[13px] font-medium text-slate-500">Birds Alive</span>
+          </div>
+          <p class="text-[26px] font-extrabold text-slate-900 mt-2 ctrl-readout">{{ data.totalBirdsAlive | number }}</p>
+          <p class="text-[11.5px] text-emerald-600 mt-0.5 font-medium">↗ of {{ data.totalChicksArrived | number }} arrived</p>
+        </div>
+        <div class="ctrl-card kpi-tile p-4">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center text-[17px]">🥚</div>
+            <span class="text-[13px] font-medium text-slate-500">Total Arrived</span>
+          </div>
+          <p class="text-[26px] font-extrabold text-slate-900 mt-2 ctrl-readout">{{ data.totalChicksArrived | number }}</p>
+          <p class="text-[11.5px] text-slate-400 mt-0.5">all batches</p>
+        </div>
+        <div class="ctrl-card kpi-tile p-4">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center text-[17px]">📉</div>
+            <span class="text-[13px] font-medium text-slate-500">Mortality</span>
+          </div>
+          <p class="text-[26px] font-extrabold text-slate-900 mt-2 ctrl-readout">{{ data.totalMortality | number }}</p>
+          <p class="text-[11.5px] mt-0.5 font-medium" [ngClass]="data.totalMortality > 0 ? 'text-red-500' : 'text-emerald-600'">
+            {{ data.totalMortality > 0 ? '↘ total deaths' : 'no losses' }}</p>
+        </div>
+        <div class="ctrl-card kpi-tile p-4">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-lg bg-lime-50 flex items-center justify-center text-[17px]">🌾</div>
+            <span class="text-[13px] font-medium text-slate-500">Feed (7d)</span>
+          </div>
+          <p class="text-[26px] font-extrabold text-slate-900 mt-2 ctrl-readout">{{ data.recentFeed.totalFeedKg | number:'1.0-0' }}<span class="text-sm font-semibold text-slate-400"> kg</span></p>
+          <p class="text-[11.5px] text-slate-400 mt-0.5">this week</p>
+        </div>
+        <div class="ctrl-card kpi-tile p-4">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-lg bg-cyan-50 flex items-center justify-center text-[17px]">💧</div>
+            <span class="text-[13px] font-medium text-slate-500">Water (7d)</span>
+          </div>
+          <p class="text-[26px] font-extrabold text-slate-900 mt-2 ctrl-readout">{{ data.recentFeed.totalWaterLiters | number:'1.0-0' }}<span class="text-sm font-semibold text-slate-400"> L</span></p>
+          <p class="text-[11.5px] text-slate-400 mt-0.5">this week</p>
+        </div>
       </div>
 
       <!-- LIVE HOUSE CLIMATE (controller replica, loads independently) -->
       <section class="space-y-2">
-        <h3 class="text-sm ctrl-title uppercase tracking-wide flex items-center gap-2">
-          <span class="inline-flex items-center gap-1 bg-red-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-md font-mono tracking-widest">◉ LIVE</span>
-          Live House — 3D Climate View
-        </h3>
+        <div class="flex items-center gap-2">
+          <span class="inline-flex items-center gap-1 bg-red-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-md tracking-widest">◉ LIVE</span>
+          <h3 class="text-[15px] font-bold text-slate-800">Live House — 3D Climate View</h3>
+        </div>
         <app-house-viz [refreshInterval]="15"></app-house-viz>
       </section>
-
-      <!-- KPI cards (always show once data loaded) -->
-      <div *ngIf="data" class="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
-        <div class="kpi-tile rounded-2xl shadow-sm p-4 text-white bg-gradient-to-br from-emerald-500 to-emerald-600">
-          <div class="flex items-center justify-between"><span class="text-2xl">🐔</span><span class="text-[10px] font-medium uppercase tracking-wide opacity-90">Active Batches</span></div>
-          <p class="text-3xl font-bold mt-2 ctrl-readout">{{ data.activeBatchCount }}</p>
-        </div>
-        <div class="kpi-tile rounded-2xl shadow-sm p-4 text-white bg-gradient-to-br from-blue-500 to-blue-600">
-          <div class="flex items-center justify-between"><span class="text-2xl">🐥</span><span class="text-[10px] font-medium uppercase tracking-wide opacity-90">Birds Alive</span></div>
-          <p class="text-3xl font-bold mt-2 ctrl-readout">{{ data.totalBirdsAlive | number }}</p>
-        </div>
-        <div class="kpi-tile rounded-2xl shadow-sm p-4 text-white bg-gradient-to-br from-amber-500 to-amber-600">
-          <div class="flex items-center justify-between"><span class="text-2xl">🥚</span><span class="text-[10px] font-medium uppercase tracking-wide opacity-90">Total Arrived</span></div>
-          <p class="text-3xl font-bold mt-2 ctrl-readout">{{ data.totalChicksArrived | number }}</p>
-        </div>
-        <div class="kpi-tile rounded-2xl shadow-sm p-4 text-white bg-gradient-to-br from-rose-500 to-red-600">
-          <div class="flex items-center justify-between"><span class="text-2xl">☠️</span><span class="text-[10px] font-medium uppercase tracking-wide opacity-90">Mortality</span></div>
-          <p class="text-3xl font-bold mt-2 ctrl-readout">{{ data.totalMortality | number }}</p>
-        </div>
-      </div>
 
       <!-- Loading skeleton (farm stats only; climate panel handles itself) -->
       <div *ngIf="loading" class="animate-pulse space-y-3">
@@ -64,15 +101,18 @@ import { HouseVizComponent } from '../climate-live/house-viz.component';
         <div class="text-4xl mb-3">⚠️</div>
         <h3 class="text-lg font-bold text-gray-800 mb-1">Couldn't load farm stats</h3>
         <p class="text-sm text-gray-500 mb-4">{{ error }}</p>
-        <button (click)="loadDashboard()" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-5 py-2.5 rounded-xl transition">↻ Try again</button>
+        <button (click)="loadDashboard()" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2.5 rounded-xl transition">↻ Try again</button>
       </div>
 
       <!-- Farm data -->
       <div *ngIf="!loading && !error && data" class="space-y-5">
         <!-- Financials + 7-day quick stats -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div class="ctrl-card p-4 md:col-span-2">
-            <div class="flex items-center gap-2 mb-3"><span class="text-lg">💰</span><h3 class="text-sm font-bold text-gray-700 uppercase tracking-wide">Financials</h3></div>
+          <div class="ctrl-card p-5 md:col-span-2">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-[15px] font-bold text-slate-800">Financials</h3>
+              <a routerLink="/finance" class="text-xs font-semibold text-blue-600 hover:underline bg-blue-50 px-2.5 py-1 rounded-lg">View all</a>
+            </div>
             <div class="grid grid-cols-3 gap-3 mb-3">
               <div><p class="text-[10px] text-gray-400 uppercase">Income</p><p class="text-base md:text-xl font-bold text-green-600">₹{{ data.financials.totalIncome | number:'1.0-0' }}</p></div>
               <div><p class="text-[10px] text-gray-400 uppercase">Expense</p><p class="text-base md:text-xl font-bold text-red-600">₹{{ data.financials.totalExpenses | number:'1.0-0' }}</p></div>
@@ -83,8 +123,8 @@ import { HouseVizComponent } from '../climate-live/house-viz.component';
               <div class="bg-red-500" [style.width.%]="100 - incomeBarWidth()"></div>
             </div>
           </div>
-          <div class="ctrl-card p-4">
-            <h3 class="text-xs font-bold text-gray-500 uppercase mb-3 flex items-center gap-2"><span>📅</span> Last 7 Days</h3>
+          <div class="ctrl-card p-5">
+            <h3 class="text-[15px] font-bold text-slate-800 mb-4">Last 7 days</h3>
             <div class="grid grid-cols-2 gap-2">
               <div class="bg-emerald-50 rounded-xl p-3 text-center">
                 <div class="text-xl mb-1">🌾</div>
@@ -103,14 +143,14 @@ import { HouseVizComponent } from '../climate-live/house-viz.component';
         <!-- Active batches -->
         <div>
           <div class="flex justify-between items-center mb-2">
-            <h3 class="text-sm ctrl-title uppercase tracking-wide flex items-center gap-2"><span>📊</span> Active Batches</h3>
-            <a routerLink="/batches" class="text-xs text-emerald-600 hover:underline font-medium">View all →</a>
+            <h3 class="text-[15px] font-bold text-slate-800">Active batches</h3>
+            <a routerLink="/batches" class="text-xs font-semibold text-blue-600 hover:underline bg-blue-50 px-2.5 py-1 rounded-lg">View all</a>
           </div>
 
           <div *ngIf="data.batchSummaries.length === 0" class="ctrl-card p-8 text-center">
             <div class="text-3xl mb-2">🐣</div>
             <p class="text-gray-500 text-sm mb-3">No active batches yet</p>
-            <a routerLink="/batches" class="inline-block bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-4 py-2 rounded-xl">Add a batch</a>
+            <a routerLink="/batches" class="inline-block bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-xl">Add a batch</a>
           </div>
 
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-2">
@@ -150,8 +190,11 @@ import { HouseVizComponent } from '../climate-live/house-viz.component';
 
         <!-- Bottom grid: expenses + today's logs -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div class="ctrl-card p-4">
-            <h3 class="text-xs font-bold text-gray-500 uppercase mb-3 flex items-center gap-2"><span>🧾</span> Batch Expenses</h3>
+          <div class="ctrl-card p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-[15px] font-bold text-slate-800">Batch expenses</h3>
+              <a routerLink="/batch-expenses" class="text-xs font-semibold text-blue-600 hover:underline bg-blue-50 px-2.5 py-1 rounded-lg">View all</a>
+            </div>
             <div *ngIf="data.expenseByCategory.length === 0" class="text-gray-400 text-xs py-2">No expenses recorded</div>
             <div class="space-y-2">
               <div *ngFor="let cat of data.expenseByCategory" class="flex items-center justify-between">
@@ -165,13 +208,13 @@ import { HouseVizComponent } from '../climate-live/house-viz.component';
             </div>
           </div>
 
-          <div class="ctrl-card p-4">
-            <div class="flex justify-between items-center mb-3">
-              <h3 class="text-xs font-bold text-gray-500 uppercase flex items-center gap-2"><span>📝</span> Today's Logs</h3>
-              <a routerLink="/daily-logs" class="text-xs text-emerald-600 hover:underline font-medium">Log now →</a>
+          <div class="ctrl-card p-5">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-[15px] font-bold text-slate-800">Today's logs</h3>
+              <a routerLink="/daily-logs" class="text-xs font-semibold text-blue-600 hover:underline bg-blue-50 px-2.5 py-1 rounded-lg">Log now</a>
             </div>
             <div *ngIf="data.todayLogs.length === 0" class="text-gray-400 text-xs py-4 text-center">
-              No logs recorded today. <a routerLink="/daily-logs" class="text-emerald-600 underline">Add now</a>
+              No logs recorded today. <a routerLink="/daily-logs" class="text-blue-600 underline">Add now</a>
             </div>
             <div class="space-y-1">
               <div *ngFor="let log of data.todayLogs" class="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
