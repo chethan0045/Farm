@@ -111,6 +111,7 @@ farm_manager/
 │       │   ├── device-control/         # Manual relay control panel
 │       │   ├── automation-rules/       # Automation rule builder
 │       │   ├── ai-insights/            # AI predictions & recommendations
+│       │   ├── settings/               # Account settings, user management (admin), ABIS NL-X16 bridge config (admin)
 │       │   ├── login/                  # Login page
 │       │   ├── register/               # Registration page
 │       │   └── layout/                 # Main layout with sidebar
@@ -167,10 +168,24 @@ farm_manager/
 
 ## API Endpoints
 
-### Authentication
-- `POST /api/auth/register` - Register
-- `POST /api/auth/login` - Login
+### Authentication & Account
+- `POST /api/auth/register` - Register (first account becomes admin)
+- `POST /api/auth/login` - Login (deactivated accounts rejected)
 - `GET /api/auth/me` - Current user
+- `PUT /api/auth/me` - Update own username/email (returns fresh token)
+- `PUT /api/auth/me/password` - Change own password (requires currentPassword)
+
+### User Management (JWT + admin role)
+- `GET|POST /api/users` - List/create accounts
+- `PUT /api/users/:id` - Update username/email/role/active (guards: can't demote/deactivate self, at least one active admin must remain)
+- `PUT /api/users/:id/password` - Admin password reset
+- `DELETE /api/users/:id` - Delete account (same guards)
+- Admin role/active status is re-checked from the DB per request (requireAdmin), so demotion applies immediately; non-admin JWTs keep farm access until expiry.
+
+### Settings
+- `GET /api/settings` / `GET /api/settings/:key` - Read (any JWT)
+- `PUT /api/settings/:key` - Upsert `{ value }` (admin only)
+- `GET /api/settings/bridge/abis` - Pi bridge pulls ABIS NL-X16 config with its device API key; the bridge overlays it on local config.json every 5 min (slaveId, functionCode, blockStart, blockCount, pollSeconds, discovery, map — never apiUrl/apiKey/listenPort)
 
 ### Farm Management
 - `GET /api/dashboard` - Dashboard stats
@@ -251,7 +266,7 @@ cd backend && npm test   # jest + supertest + mongodb-memory-server
 - Windows note: mongodb-memory-server needs the VC++ 2015+ x64 redistributable (`winget install Microsoft.VCRedist.2015+.x64`). Without it, mongod exits with 0xC0000135; as a stopgap the three `vcruntime140*/msvcp140` DLLs can be copied beside the mongod exe in `node_modules/.cache/mongodb-memory-server/` (lost on reinstall — install the redist for a durable fix).
 
 ## Security Model
-- **Single-tenant by design**: one farm, models have no per-user ownership. Public registration is closed — the first account can always be created (bootstrap), after that set `ALLOW_REGISTRATION=true` to open it temporarily.
+- **Single-tenant by design**: one farm, models have no per-user ownership. Public registration is closed — the first account can always be created (bootstrap, becomes admin), after that set `ALLOW_REGISTRATION=true` to open it temporarily. Admins add further accounts from Settings → Users; `role: admin|user` gates user management and settings writes, `active: false` blocks login.
 - `MONGODB_URI` and `JWT_SECRET` are REQUIRED — the server refuses to boot without them (no fallbacks).
 - Login/register are rate-limited (10 failed attempts / 15 min / IP). All input is sanitized against MongoDB operator injection (express-mongo-sanitize). helmet is enabled (CSP off for the inline SW registration script).
 

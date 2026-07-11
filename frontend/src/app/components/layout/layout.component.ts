@@ -49,11 +49,11 @@ import { SensorStore } from '../../services/sensor-store.service';
             <span *ngIf="unreadAlerts > 0" class="absolute -top-0.5 -right-0.5 bg-blue-500 text-white text-[9px] min-w-4 h-4 px-1 rounded-full flex items-center justify-center font-bold">{{ unreadAlerts }}</span>
           </a>
 
-          <!-- Avatar -->
-          <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold uppercase select-none"
-            [title]="(auth.currentUser$ | async)?.username || ''">
+          <!-- Avatar → account settings -->
+          <a routerLink="/settings" class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold uppercase select-none hover:bg-blue-500"
+            [title]="((auth.currentUser$ | async)?.username || '') + ' — account settings'">
             {{ ((auth.currentUser$ | async)?.username || 'U').charAt(0) }}
-          </div>
+          </a>
         </div>
       </header>
 
@@ -199,6 +199,12 @@ export class LayoutComponent implements OnInit, OnDestroy {
         { link: '/sales', icon: '🛒', label: 'Sales & Customers' },
         { link: '/finance', icon: '💰', label: 'Finance' },
         { link: '/batch-expenses', icon: '💡', label: 'Batch Expenses' },
+      ]
+    },
+    {
+      label: 'System',
+      items: [
+        { link: '/settings', icon: '🛠️', label: 'Settings' },
       ]
     }
   ];

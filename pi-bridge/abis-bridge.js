@@ -28,6 +28,39 @@ if (!cfg.apiKey || cfg.apiKey.startsWith('PASTE')) {
       'Register the device in the app (Devices page) and paste its API key.');
 }
 
+// --- Remote config (Settings page → ABIS NL-X16) ---
+// The app's Settings page stores the Modbus/polling config in the cloud;
+// we pull it with the same API key used for uploads and overlay it on the
+// local config.json. Local file stays the fallback when the cloud is
+// unreachable. apiUrl/apiKey/listenPort are deliberately NOT remote-managed —
+// a bad value there would cut the bridge off from the cloud for good.
+const REMOTE_KEYS = ['slaveId', 'functionCode', 'blockStart', 'blockCount', 'pollSeconds', 'discovery', 'map'];
+async function syncRemoteConfig() {
+  if (!cfg.apiKey || cfg.apiKey.startsWith('PASTE')) return;
+  try {
+    const res = await fetch(`${cfg.apiUrl}/api/settings/bridge/abis`, {
+      headers: { 'X-API-Key': cfg.apiKey },
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!res.ok) return;
+    const remote = await res.json();
+    if (!remote || typeof remote !== 'object') return;
+    const changed = [];
+    for (const k of REMOTE_KEYS) {
+      if (remote[k] === undefined) continue;
+      if (JSON.stringify(cfg[k]) !== JSON.stringify(remote[k])) {
+        cfg[k] = remote[k];
+        changed.push(k);
+      }
+    }
+    if (changed.length) log(`Remote config applied: ${changed.join(', ')}`);
+  } catch (e) {
+    log(`Remote config fetch failed: ${e.message}`);
+  }
+}
+syncRemoteConfig();
+setInterval(syncRemoteConfig, 5 * 60 * 1000);
+
 // --- Modbus RTU helpers ---
 function crc16(buf) {
   let crc = 0xFFFF;
@@ -152,13 +185,17 @@ const server = net.createServer((socket) => {
   socket.setKeepAlive(true, 30000);
   let acc = Buffer.alloc(0);
 
+  // setTimeout chain (not setInterval) so a pollSeconds change from the
+  // remote config takes effect on the next cycle without reconnecting.
+  let timer = null;
   const poll = () => {
-    if (cfg.map.length === 0 && !cfg.discovery) return;
-    acc = Buffer.alloc(0); // fresh frame per poll
-    socket.write(buildReadRequest(cfg.slaveId, cfg.functionCode, cfg.blockStart, cfg.blockCount));
+    if (cfg.map.length > 0 || cfg.discovery) {
+      acc = Buffer.alloc(0); // fresh frame per poll
+      socket.write(buildReadRequest(cfg.slaveId, cfg.functionCode, cfg.blockStart, cfg.blockCount));
+    }
+    timer = setTimeout(poll, cfg.pollSeconds * 1000);
   };
   poll();
-  const timer = setInterval(poll, cfg.pollSeconds * 1000);
 
   socket.on('data', async (chunk) => {
     acc = Buffer.concat([acc, chunk]);
@@ -176,8 +213,8 @@ const server = net.createServer((socket) => {
     }
   });
 
-  socket.on('close', () => { clearInterval(timer); log(`DTU disconnected: ${who}`); });
-  socket.on('error', (e) => { clearInterval(timer); log(`Socket error ${who}: ${e.message}`); });
+  socket.on('close', () => { clearTimeout(timer); log(`DTU disconnected: ${who}`); });
+  socket.on('error', (e) => { clearTimeout(timer); log(`Socket error ${who}: ${e.message}`); });
 });
 
 server.listen(cfg.listenPort, () => {

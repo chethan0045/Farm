@@ -33,6 +33,21 @@ export class AuthService {
     return !!localStorage.getItem('token');
   }
 
+  get currentUser(): User | null {
+    return this.currentUserSubject.value;
+  }
+
+  get isAdmin(): boolean {
+    return this.currentUser?.role === 'admin';
+  }
+
+  // Called after PUT /auth/me returns a fresh token + user
+  applySession(res: AuthResponse): void {
+    localStorage.setItem('token', res.token);
+    localStorage.setItem('user', JSON.stringify(res.user));
+    this.currentUserSubject.next(res.user);
+  }
+
   get token(): string | null {
     return localStorage.getItem('token');
   }

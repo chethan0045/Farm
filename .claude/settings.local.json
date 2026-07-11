@@ -61,7 +61,10 @@
       "Bash(git -C /c/Farm diff .gitignore)",
       "Bash(git -C /c/Farm diff .claude/settings.local.json)",
       "Bash(git -C /c/Farm ls-files backend/public)",
-      "Bash(git checkout *)"
+      "Bash(git checkout *)",
+      "Bash(git merge *)",
+      "Bash(git stash *)",
+      "Bash(git fetch *)"
     ]
   }
 }

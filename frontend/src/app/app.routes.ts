@@ -27,6 +27,7 @@ export const routes: Routes = [
       { path: 'analytics', loadComponent: () => import('./components/analytics/analytics.component').then(m => m.AnalyticsComponent) },
       { path: 'cameras', loadComponent: () => import('./components/cameras/cameras.component').then(m => m.CamerasComponent) },
       { path: 'climate-live', loadComponent: () => import('./components/climate-live/climate-live.component').then(m => m.ClimateLiveComponent) },
+      { path: 'settings', loadComponent: () => import('./components/settings/settings.component').then(m => m.SettingsComponent) },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },

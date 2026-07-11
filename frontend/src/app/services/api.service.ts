@@ -239,4 +239,23 @@ export class ApiService {
   createCamera(data: any): Observable<any> { return this.http.post(`${this.apiUrl}/cameras`, data); }
   updateCamera(id: string, data: any): Observable<any> { return this.http.put(`${this.apiUrl}/cameras/${id}`, data); }
   deleteCamera(id: string): Observable<any> { return this.http.delete(`${this.apiUrl}/cameras/${id}`); }
+
+  // Account settings
+  updateProfile(data: { username?: string; email?: string }): Observable<any> { return this.http.put(`${this.apiUrl}/auth/me`, data); }
+  changePassword(currentPassword: string, newPassword: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/auth/me/password`, { currentPassword, newPassword });
+  }
+
+  // User management (admin)
+  getUsers(): Observable<any[]> { return this.http.get<any[]>(`${this.apiUrl}/users`); }
+  createUser(data: any): Observable<any> { return this.http.post(`${this.apiUrl}/users`, data); }
+  updateUser(id: string, data: any): Observable<any> { return this.http.put(`${this.apiUrl}/users/${id}`, data); }
+  resetUserPassword(id: string, newPassword: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/users/${id}/password`, { newPassword });
+  }
+  deleteUser(id: string): Observable<any> { return this.http.delete(`${this.apiUrl}/users/${id}`); }
+
+  // Farm settings (key/value sections, e.g. 'abis')
+  getSetting(key: string): Observable<any> { return this.http.get(`${this.apiUrl}/settings/${key}`); }
+  updateSetting(key: string, value: any): Observable<any> { return this.http.put(`${this.apiUrl}/settings/${key}`, { value }); }
 }

@@ -29,6 +29,8 @@ const aiRoutes = require('./routes/ai');
 const sensorAlertRoutes = require('./routes/sensorAlerts');
 const escalationPolicyRoutes = require('./routes/escalationPolicies');
 const cameraRoutes = require('./routes/cameras');
+const userRoutes = require('./routes/users');
+const settingRoutes = require('./routes/settings');
 const { errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
@@ -81,6 +83,8 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/sensor-alerts', sensorAlertRoutes);
 app.use('/api/escalation-policies', escalationPolicyRoutes);
 app.use('/api/cameras', cameraRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/settings', settingRoutes);
 
 // Serve Angular frontend in production.
 // Hashed bundles (main-*.js, chunk-*.js, styles-*.css) are content-addressed,
