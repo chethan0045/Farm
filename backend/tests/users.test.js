@@ -113,6 +113,67 @@ describe('account settings', () => {
     expect(res.body.token).toBeDefined();
   });
 
+  test('password change requires email OTP when SMTP is configured', async () => {
+    process.env.SMTP_USER = 'farm@test.com';
+    process.env.SMTP_PASS = 'apppass';
+    try {
+      const { token } = await createUserWithToken({ email: 'otp@x.com', password: 'secret123' });
+
+      // Step 1: valid current password, no otp -> code is emailed (202)
+      const step1 = await request(app).put('/api/auth/me/password')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ currentPassword: 'secret123', newPassword: 'brandnew1' });
+      expect(step1.status).toBe(202);
+      expect(step1.body.otpRequired).toBe(true);
+      const code = step1.body.devOtp;
+      expect(code).toMatch(/^\d{6}$/);
+
+      // Wrong code is rejected, password unchanged
+      const wrong = await request(app).put('/api/auth/me/password')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ currentPassword: 'secret123', newPassword: 'brandnew1', otp: '000000' });
+      expect(wrong.status).toBe(401);
+      expect((await request(app).post('/api/auth/login')
+        .send({ email: 'otp@x.com', password: 'secret123' })).status).toBe(200);
+
+      // Correct code applies the change
+      const ok = await request(app).put('/api/auth/me/password')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ currentPassword: 'secret123', newPassword: 'brandnew1', otp: code });
+      expect(ok.status).toBe(200);
+      expect((await request(app).post('/api/auth/login')
+        .send({ email: 'otp@x.com', password: 'brandnew1' })).status).toBe(200);
+
+      // Code is single-use: replay is rejected
+      const replay = await request(app).put('/api/auth/me/password')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ currentPassword: 'brandnew1', newPassword: 'another1', otp: code });
+      expect(replay.status).toBe(410);
+    } finally {
+      delete process.env.SMTP_USER;
+      delete process.env.SMTP_PASS;
+    }
+  });
+
+  test('OTP requests are throttled to one per minute', async () => {
+    process.env.SMTP_USER = 'farm@test.com';
+    process.env.SMTP_PASS = 'apppass';
+    try {
+      const { token } = await createUserWithToken({ email: 'otp2@x.com', password: 'secret123' });
+      const first = await request(app).put('/api/auth/me/password')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ currentPassword: 'secret123', newPassword: 'brandnew1' });
+      expect(first.status).toBe(202);
+      const second = await request(app).put('/api/auth/me/password')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ currentPassword: 'secret123', newPassword: 'brandnew1' });
+      expect(second.status).toBe(429);
+    } finally {
+      delete process.env.SMTP_USER;
+      delete process.env.SMTP_PASS;
+    }
+  });
+
   test('profile update rejects a username already in use', async () => {
     await createUserWithToken({ username: 'taken', email: 'taken@x.com' });
     const { token } = await createUserWithToken({ username: 'other', email: 'other@x.com' });

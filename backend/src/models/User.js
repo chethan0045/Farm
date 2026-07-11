@@ -6,7 +6,14 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, trim: true, lowercase: true },
   password: { type: String, required: true, minlength: 6 },
   role: { type: String, enum: ['admin', 'user'], default: 'user' },
-  active: { type: Boolean, default: true }
+  active: { type: Boolean, default: true },
+  // Email verification for password changes (sha256 of the 6-digit code)
+  passwordOtp: {
+    hash: String,
+    expiresAt: Date,
+    attempts: { type: Number, default: 0 },
+    sentAt: Date
+  }
 }, { timestamps: true });
 
 userSchema.pre('save', async function (next) {

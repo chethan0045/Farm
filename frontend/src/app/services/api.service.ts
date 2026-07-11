@@ -242,8 +242,8 @@ export class ApiService {
 
   // Account settings
   updateProfile(data: { username?: string; email?: string }): Observable<any> { return this.http.put(`${this.apiUrl}/auth/me`, data); }
-  changePassword(currentPassword: string, newPassword: string): Observable<any> {
-    return this.http.put(`${this.apiUrl}/auth/me/password`, { currentPassword, newPassword });
+  changePassword(currentPassword: string, newPassword: string, otp?: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/auth/me/password`, { currentPassword, newPassword, ...(otp ? { otp } : {}) });
   }
 
   // User management (admin)

@@ -22,7 +22,7 @@ async function wouldRemoveLastAdmin(targetId, changes = {}) {
 // GET /api/users - list all accounts
 router.get('/', async (req, res, next) => {
   try {
-    const users = await User.find().select('-password').sort({ createdAt: 1 });
+    const users = await User.find().select('-password -passwordOtp').sort({ createdAt: 1 });
     res.json(users);
   } catch (err) {
     next(err);
@@ -47,6 +47,7 @@ router.post('/', async (req, res, next) => {
     const user = await User.create({ username: username.trim(), email: email.trim().toLowerCase(), password, role: role || 'user' });
     const safe = user.toObject();
     delete safe.password;
+    delete safe.passwordOtp;
     res.status(201).json(safe);
   } catch (err) {
     next(err);
@@ -91,7 +92,7 @@ router.put('/:id', async (req, res, next) => {
       if (clash) return res.status(409).json({ error: 'Username or email already in use' });
     }
 
-    const user = await User.findByIdAndUpdate(req.params.id, updates, { new: true, runValidators: true }).select('-password');
+    const user = await User.findByIdAndUpdate(req.params.id, updates, { new: true, runValidators: true }).select('-password -passwordOtp');
     if (!user) return res.status(404).json({ error: 'User not found' });
     res.json(user);
   } catch (err) {

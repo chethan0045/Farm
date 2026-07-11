@@ -286,6 +286,8 @@ cd backend && npm test   # jest + supertest + mongodb-memory-server
 - `WHATSAPP_PHONE_NUMBER` - WhatsApp sender phone
 - `VAPID_PUBLIC_KEY` - Web push VAPID public key
 - `VAPID_PRIVATE_KEY` - Web push VAPID private key
+- `SMTP_USER` / `SMTP_PASS` - Email credentials (Gmail app password). When set, password changes require an emailed 6-digit OTP (two-step PUT /api/auth/me/password: 202 sends code, then resend with `otp`). When unset, password change needs only the current password.
+- `SMTP_HOST` / `SMTP_PORT` / `SMTP_FROM` - Optional SMTP overrides (default smtp.gmail.com:587)
 
 ## Build & Deploy
 ```bash

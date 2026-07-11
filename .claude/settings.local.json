@@ -64,7 +64,9 @@
       "Bash(git checkout *)",
       "Bash(git merge *)",
       "Bash(git stash *)",
-      "Bash(git fetch *)"
+      "Bash(git fetch *)",
+      "Bash(rm -f backend/public/chunk-*.js backend/public/main-*.js backend/public/styles-*.css backend/public/polyfills-*.js)",
+      "Bash(cp -r frontend/dist/frontend/browser/* backend/public/)"
     ]
   }
 }

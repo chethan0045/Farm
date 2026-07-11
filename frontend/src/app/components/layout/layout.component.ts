@@ -64,7 +64,9 @@ import { SensorStore } from '../../services/sensor-store.service';
         [class.-translate-x-full]="!sidebarOpen" [class.translate-x-0]="sidebarOpen"
         [class.lg:translate-x-0]="true">
 
-        <nav class="flex-1 px-3 py-4 space-y-4 overflow-y-auto overflow-x-hidden">
+        <!-- pb-16 on mobile: the fixed bottom tab bar overlays the sidebar's
+             lowest items (Settings is last) and steals their taps otherwise -->
+        <nav class="flex-1 px-3 py-4 pb-16 lg:pb-4 space-y-4 overflow-y-auto overflow-x-hidden">
           <div *ngFor="let section of nav">
             <p *ngIf="!collapsed" class="px-3 mb-1.5 text-[10.5px] font-bold tracking-[0.14em] uppercase text-slate-400">{{ section.label }}</p>
             <div class="space-y-0.5">

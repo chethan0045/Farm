@@ -1,7 +1,7 @@
 /* KVS Farm PWA service worker — offline shell + safe caching.
  * Navigation = network-first (always fresh index online, cached fallback offline).
  * API = never cached. Static assets = cache-first with background update. */
-const CACHE = 'kvs-farm-v4';
+const CACHE = 'kvs-farm-v5';
 // logo.png (~864 KB) is deliberately NOT precached — the fetch handler below
 // caches it on first use; precaching it slowed every SW install on mobile.
 const SHELL = ['/', '/index.html', '/manifest.webmanifest'];

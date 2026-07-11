@@ -66,10 +66,17 @@ import { ToastService } from '../../services/toast.service';
               <label class="text-sm text-gray-600">Confirm new password</label>
               <input [(ngModel)]="pw.confirm" type="password" autocomplete="new-password" class="w-full border rounded-lg px-3 py-2 text-sm">
             </div>
+            <div *ngIf="otpNeeded" class="bg-blue-50 border border-blue-100 rounded-lg p-3">
+              <label class="text-sm text-blue-800 font-medium">Email verification code</label>
+              <p class="text-[11.5px] text-blue-600 mb-2">We sent a 6-digit code to {{ auth.currentUser?.email }} — enter it to confirm the change.</p>
+              <input [(ngModel)]="pw.otp" inputmode="numeric" maxlength="6" placeholder="123456"
+                class="w-full border border-blue-200 rounded-lg px-3 py-2 text-sm tracking-[0.4em] font-mono">
+              <button (click)="resendOtp()" class="text-[11.5px] text-blue-600 hover:underline mt-1.5">Resend code</button>
+            </div>
           </div>
           <button (click)="changePassword()" [disabled]="savingPw"
             class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50">
-            Update Password
+            {{ otpNeeded ? 'Verify & Update Password' : 'Update Password' }}
           </button>
         </div>
       </div>
@@ -258,8 +265,9 @@ export class SettingsComponent implements OnInit {
 
   profile = { username: '', email: '' };
   savingProfile = false;
-  pw = { current: '', next: '', confirm: '' };
+  pw = { current: '', next: '', confirm: '', otp: '' };
   savingPw = false;
+  otpNeeded = false;
 
   users: any[] = [];
   showUserForm = false;
@@ -316,14 +324,28 @@ export class SettingsComponent implements OnInit {
     if (this.pw.next.length < 6) { this.toast.error('New password must be at least 6 characters'); return; }
     if (this.pw.next !== this.pw.confirm) { this.toast.error('Passwords do not match'); return; }
     this.savingPw = true;
-    this.api.changePassword(this.pw.current, this.pw.next).subscribe({
-      next: () => {
-        this.pw = { current: '', next: '', confirm: '' };
+    this.api.changePassword(this.pw.current, this.pw.next, this.otpNeeded ? this.pw.otp : undefined).subscribe({
+      next: (res: any) => {
         this.savingPw = false;
-        this.toast.success('Password updated');
+        if (res?.otpRequired) {
+          // Server emailed a verification code — reveal the OTP step
+          this.otpNeeded = true;
+          this.toast.show(res.message || 'Verification code sent to your email', 'info');
+        } else {
+          this.pw = { current: '', next: '', confirm: '', otp: '' };
+          this.otpNeeded = false;
+          this.toast.success('Password updated');
+        }
         this.cdr.detectChanges();
       },
       error: () => { this.savingPw = false; this.cdr.detectChanges(); }
+    });
+  }
+
+  resendOtp() {
+    // Re-run step 1 (no otp) — the server throttles to one code per minute
+    this.api.changePassword(this.pw.current, this.pw.next).subscribe({
+      next: (res: any) => { this.toast.show(res?.message || 'Verification code re-sent', 'info'); this.pw.otp = ''; this.cdr.detectChanges(); }
     });
   }
 

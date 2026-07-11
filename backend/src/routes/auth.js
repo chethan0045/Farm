@@ -1,8 +1,10 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const User = require('../models/User');
 const { JWT_SECRET, authenticate } = require('../middleware/auth');
 const { authRateLimit } = require('../middleware/rateLimit');
+const emailService = require('../services/emailService');
 
 const router = express.Router();
 
@@ -55,7 +57,7 @@ router.post('/login', authRateLimit, async (req, res, next) => {
 
 router.get('/me', authenticate, async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id).select('-password');
+    const user = await User.findById(req.user.id).select('-password -passwordOtp');
     if (!user) return res.status(404).json({ error: 'User not found' });
     res.json(user);
   } catch (err) {
@@ -87,7 +89,7 @@ router.put('/me', authenticate, async (req, res, next) => {
     });
     if (clash) return res.status(409).json({ error: 'Username or email already in use' });
 
-    const user = await User.findByIdAndUpdate(req.user.id, updates, { new: true, runValidators: true }).select('-password');
+    const user = await User.findByIdAndUpdate(req.user.id, updates, { new: true, runValidators: true }).select('-password -passwordOtp');
     if (!user) return res.status(404).json({ error: 'User not found' });
     // Issue a fresh token so the header/avatar reflect the new identity immediately
     const token = jwt.sign({ id: user._id, username: user.username, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
@@ -97,10 +99,15 @@ router.put('/me', authenticate, async (req, res, next) => {
   }
 });
 
-// Account settings: change own password (requires current password)
+// Account settings: change own password (requires current password).
+// When SMTP is configured, this is a two-step flow: the first valid call
+// emails a 6-digit code (202 { otpRequired: true }); the second call must
+// include { otp } to apply the change. Without SMTP it applies directly.
+const sha256 = (s) => crypto.createHash('sha256').update(s).digest('hex');
+
 router.put('/me/password', authenticate, async (req, res, next) => {
   try {
-    const { currentPassword, newPassword } = req.body;
+    const { currentPassword, newPassword, otp } = req.body;
     if (typeof currentPassword !== 'string' || typeof newPassword !== 'string') {
       return res.status(400).json({ error: 'Current and new password are required' });
     }
@@ -111,6 +118,39 @@ router.put('/me/password', authenticate, async (req, res, next) => {
     if (!(await user.comparePassword(currentPassword))) {
       return res.status(401).json({ error: 'Current password is incorrect' });
     }
+
+    if (emailService.isConfigured()) {
+      if (typeof otp !== 'string' || !otp) {
+        // Step 1: send (or resend) the verification code
+        if (user.passwordOtp?.sentAt && Date.now() - user.passwordOtp.sentAt.getTime() < 60 * 1000) {
+          return res.status(429).json({ error: 'Code already sent — wait a minute before requesting another' });
+        }
+        const code = crypto.randomInt(100000, 1000000).toString();
+        user.passwordOtp = { hash: sha256(code), expiresAt: new Date(Date.now() + 10 * 60 * 1000), attempts: 0, sentAt: new Date() };
+        await user.save();
+        await emailService.sendPasswordOtp(user.email, code);
+        const payload = { otpRequired: true, message: `Verification code sent to ${user.email}` };
+        if (process.env.NODE_ENV === 'test') payload.devOtp = code; // test-only escape hatch, never set in production
+        return res.status(202).json(payload);
+      }
+      // Step 2: verify the code
+      const stored = user.passwordOtp;
+      if (!stored?.hash || !stored.expiresAt || stored.expiresAt < new Date()) {
+        return res.status(410).json({ error: 'Verification code expired — request a new one' });
+      }
+      if (stored.attempts >= 5) {
+        user.passwordOtp = undefined;
+        await user.save();
+        return res.status(429).json({ error: 'Too many wrong codes — request a new one' });
+      }
+      if (sha256(otp.trim()) !== stored.hash) {
+        user.passwordOtp.attempts = (stored.attempts || 0) + 1;
+        await user.save();
+        return res.status(401).json({ error: 'Incorrect verification code' });
+      }
+      user.passwordOtp = undefined;
+    }
+
     user.password = newPassword;
     await user.save();
     res.json({ message: 'Password updated' });
